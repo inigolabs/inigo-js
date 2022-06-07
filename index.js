@@ -4,7 +4,7 @@ import structFactory from "ref-struct-di";
 import { resolve } from "path";
 import * as url from "url";
 
-const DIRNAME = url.fileURLToPath(new URL(".", import.meta.url));
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 const struct = structFactory(ref);
 const pointer = "pointer";
