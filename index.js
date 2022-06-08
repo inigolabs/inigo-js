@@ -132,12 +132,16 @@ export function InigoPlugin(config) {
       // If we have some errors, get the mutated query
       if (result?.errors?.length > 0) {
         requestContext.request.query = result.query;
+        requestContext.inigo = { result };
       }
 
       return {
         async willSendResponse(respContext) {
           if (respContext.response.data === undefined) {
-            respContext.response.data = null;
+            respContext.response.data = respContext.inigo.result.data;
+            respContext.response.errors = respContext.inigo.result.errors;
+            respContext.response.extensions = respContext.inigo.result.extensions;
+            return
           }
 
           const rawResponse = JSON.stringify(
