@@ -1,12 +1,8 @@
-import { Library } from "ffi-napi";
-import ref from "ref-napi";
-import structFactory from "ref-struct-di";
-import { resolve } from "path";
-import * as url from "url";
+const { Library } = require("ffi-napi");
+const ref = require("ref-napi");
+const struct = require("ref-struct-di")(ref);
+const { resolve } = require("path");
 
-const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
-
-const struct = structFactory(ref);
 const pointer = "pointer";
 const string = ref.types.CString;
 const bool = ref.types.bool;
@@ -14,13 +10,14 @@ const int = ref.types.int;
 const uint64 = ref.types.uint64;
 const _void_ = ref.types.void;
 
-export const InigoConfig = struct({
+const InigoConfig = struct({
   Debug: bool,
   Ingest: string,
   Service: string,
   Token: string,
   Schema: string,
 });
+exports.InigoConfig = InigoConfig;
 
 function getArch() {
   const arch = process.arch;
@@ -54,7 +51,7 @@ const ffi = Library(resolve(__dirname, `../${pf}/lib${pf}.so`), {
   // dispose
 });
 
-export default class Inigo {
+class Inigo {
   #instance = 0;
 
   constructor(config) {
@@ -132,7 +129,7 @@ class Query {
   } 
 }
 
-export function InigoPlugin(config) {
+function InigoPlugin(config) {
   const instance = new Inigo(config);
 
   return {
@@ -171,3 +168,4 @@ export function InigoPlugin(config) {
     },
   };
 }
+exports.InigoPlugin = InigoPlugin;
