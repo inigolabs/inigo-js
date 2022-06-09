@@ -1,0 +1,167 @@
+schema {
+	query : Query
+	mutation : Mutation
+}
+
+type Query {
+	version: Version!
+
+	login(username: String!, password: String!) : String
+	logout: Boolean!
+
+	user: User
+
+	films: [Film!]!
+	people: [Person!]!
+	planets: [Planet!]!
+	species: [Species!]!
+	starships: [Starship!]!
+	vehicles: [Vehicle!]!	
+}
+
+type Mutation {
+	userAdd(input : UserAddInput!) : ID
+	userRemove(userID : ID!) : Boolean!
+}
+
+input UserAddInput {
+	username : String!
+	password : String!
+	name : String!
+	profile : String!
+	roles : [String!]!
+}
+
+type Version {
+	name : String!
+	version : String!
+	commit : String!
+	date : String!
+}
+
+type User {
+	username : String!
+	password : String!
+	name : String!
+	profile : String!
+	roles : [String!]!
+}
+
+type Film {
+	id : ID!
+	title : String!
+	director : String!
+	episodeId : Int!
+	openingCrawl : String!
+	producer : String! @deprecated
+	characters : [Person!]!
+	planets : [Planet!]!
+	species : [Species!]!
+	starships : [Starship!]!
+	vehicles : [Vehicle!]!
+
+	error : Boolean
+	panic : Boolean
+	count : Int
+}
+
+type Person {
+	id : ID!
+	name : String!
+	ssn : String!
+	birthYear : String!
+	eyeColor : String!
+	gender : String!
+	hairColor : String!
+	height : Int!
+	mass : Float
+	skinColor : String	
+	pilotedStarship : [Starship!]!
+	pilotedVehicle : [Vehicle!]!
+	appearedIn : [Film!]!
+	type : Species
+	fromPlanet : Planet
+
+	error : Boolean
+	panic : Boolean
+}
+
+type Planet {
+	id : ID!
+	climate : String!
+	diameter : Int
+	gravity : String! 
+	name : String!
+	orbitalPeriod : String!
+	population : Int
+	rotationPeriod : String!
+	surfaceWater : String!
+	terrain : String!	
+	homeTo : [Person!]!
+	appearedIn : [Film!]!
+	originOf : [Species!]!
+
+	error : Boolean
+	panic : Boolean
+}
+
+type Species {
+	id : ID!
+	averageHeight : Int!
+	averageLifespan : String!
+	classification : String!
+	designation : String!
+	name : String!
+	skinColor : String!
+	eyeColor : String!
+	hairColor : String!
+	language : String!
+	originatesFrom : Planet!
+	appearedIn : [Film!]!
+	includesPerson : [Person!]!
+
+	error : Boolean
+	panic : Boolean
+}
+
+type Starship {
+	id : ID!
+	cargoCapacity : Int,
+	class : String!
+	consumables : String!
+	costInCredits : Int!
+	crew : String!
+	hyperdriveRating : String!
+	length : Float!
+	manufacturer : String!
+	maxAtmospheringSpeed : String!
+	maximumMegalights : String
+	model : String!
+	name : String!
+	passengerCapacity : Int	
+	appearedIn : [Film!]!
+	pilotedBy : [Person!]!
+
+	error : Boolean
+	panic : Boolean
+}
+
+type Vehicle {
+	id : ID!
+	cargoCapacity : Int,
+	consumables : String!
+	costInCredits : Int!
+	crew : String!
+	length : Float
+	manufacturer : String!
+	maxAtmospheringSpeed : String!
+	model : String!
+	name : String!
+	passengerCapacity : Int	
+	appearedIn : [Film!]!
+	pilotedBy : [Person!]!
+
+	error : Boolean
+	panic : Boolean
+}
+
