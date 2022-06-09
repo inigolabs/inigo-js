@@ -1,0 +1,3380 @@
+user: 
+- username: yoda
+  password: force
+  name: Yoda
+  profile: admin
+  roles: [producer, director, actor, viewer]
+- username: han
+  password: force
+  name: Han Solo
+  profile: user
+  roles: [director, actor, viewer]
+- username: chewbacca
+  password: force
+  name: Chewbacca
+  profile: user
+  roles: [actor, viewer]
+
+token: []
+
+film:
+- director: George Lucas
+  episode_id: 4
+  opening_crawl: |-
+    It is a period of civil war.
+    Rebel spaceships, striking
+    from a hidden base, have won
+    their first victory against
+    the evil Galactic Empire.
+    
+    During the battle, Rebel
+    spies managed to steal secret
+    plans to the Empire's
+    ultimate weapon, the DEATH
+    STAR, an armored space
+    station with enough power
+    to destroy an entire planet.
+    
+    Pursued by the Empire's
+    sinister agents, Princess
+    Leia races home aboard her
+    starship, custodian of the
+    stolen plans that can save her
+    people and restore
+    freedom to the galaxy....
+  producer: Gary Kurtz, Rick McCallum
+  title: A New Hope
+  edges:
+    has_person:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    - 79
+    has_planet:
+    - 0
+    - 1
+    - 2
+    has_starship:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    has_vehicle:
+    - 0
+    - 1
+    - 2
+    - 3
+    has_species:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+- director: Irvin Kershner
+  episode_id: 5
+  opening_crawl: |-
+    It is a dark time for the
+    Rebellion. Although the Death
+    Star has been destroyed,
+    Imperial troops have driven the
+    Rebel forces from their hidden
+    base and pursued them across
+    the galaxy.
+    
+    Evading the dreaded Imperial
+    Starfleet, a group of freedom
+    fighters led by Luke Skywalker
+    has established a new secret
+    base on the remote ice world
+    of Hoth.
+    
+    The evil lord Darth Vader,
+    obsessed with finding young
+    Skywalker, has dispatched
+    thousands of remote probes into
+    the far reaches of space....
+  producer: Gary Kurtz, Rick McCallum
+  title: The Empire Strikes Back
+  edges:
+    has_person:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 9
+    - 12
+    - 13
+    - 16
+    - 18
+    - 19
+    - 20
+    - 21
+    - 22
+    - 23
+    - 24
+    has_planet:
+    - 3
+    - 4
+    - 5
+    - 26
+    has_starship:
+    - 1
+    - 4
+    - 5
+    - 6
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    has_vehicle:
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    has_species:
+    - 0
+    - 1
+    - 2
+    - 5
+    - 6
+- director: Richard Marquand
+  episode_id: 6
+  opening_crawl: |-
+    Luke Skywalker has returned to
+    his home planet of Tatooine in
+    an attempt to rescue his
+    friend Han Solo from the
+    clutches of the vile gangster
+    Jabba the Hutt.
+    
+    Little does Luke know that the
+    GALACTIC EMPIRE has secretly
+    begun construction on a new
+    armored space station even
+    more powerful than the first
+    dreaded Death Star.
+    
+    When completed, this ultimate
+    weapon will spell certain doom
+    for the small band of rebels
+    struggling to restore freedom
+    to the galaxy...
+  producer: Howard G. Kazanjian, George Lucas, Rick McCallum
+  title: Return of the Jedi
+  edges:
+    has_person:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 9
+    - 12
+    - 13
+    - 15
+    - 16
+    - 18
+    - 19
+    - 20
+    - 23
+    - 25
+    - 26
+    - 27
+    - 28
+    - 29
+    - 43
+    has_planet:
+    - 0
+    - 4
+    - 6
+    - 7
+    - 8
+    has_starship:
+    - 0
+    - 1
+    - 4
+    - 5
+    - 6
+    - 8
+    - 9
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    has_vehicle:
+    - 3
+    - 5
+    - 6
+    - 7
+    - 9
+    - 10
+    - 11
+    - 12
+    has_species:
+    - 0
+    - 1
+    - 2
+    - 4
+    - 5
+    - 7
+    - 8
+    - 9
+    - 14
+- director: George Lucas
+  episode_id: 1
+  opening_crawl: |-
+    Turmoil has engulfed the
+    Galactic Republic. The taxation
+    of trade routes to outlying star
+    systems is in dispute.
+    
+    Hoping to resolve the matter
+    with a blockade of deadly
+    battleships, the greedy Trade
+    Federation has stopped all
+    shipping to the small planet
+    of Naboo.
+    
+    While the Congress of the
+    Republic endlessly debates
+    this alarming chain of events,
+    the Supreme Chancellor has
+    secretly dispatched two Jedi
+    Knights, the guardians of
+    peace and justice in the
+    galaxy, to settle the conflict....
+  producer: Rick McCallum
+  title: The Phantom Menace
+  edges:
+    has_person:
+    - 1
+    - 2
+    - 9
+    - 10
+    - 15
+    - 18
+    - 19
+    - 30
+    - 31
+    - 32
+    - 33
+    - 34
+    - 35
+    - 36
+    - 37
+    - 38
+    - 39
+    - 40
+    - 41
+    - 42
+    - 44
+    - 45
+    - 46
+    - 47
+    - 48
+    - 49
+    - 50
+    - 51
+    - 52
+    - 53
+    - 54
+    - 55
+    - 56
+    - 57
+    has_planet:
+    - 0
+    - 7
+    - 8
+    has_starship:
+    - 16
+    - 17
+    - 18
+    - 19
+    - 20
+    has_vehicle:
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    - 18
+    - 19
+    has_species:
+    - 0
+    - 1
+    - 5
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    - 18
+    - 19
+    - 20
+    - 21
+    - 22
+    - 23
+    - 24
+    - 25
+    - 26
+- director: George Lucas
+  episode_id: 2
+  opening_crawl: |-
+    There is unrest in the Galactic
+    Senate. Several thousand solar
+    systems have declared their
+    intentions to leave the Republic.
+    
+    This separatist movement,
+    under the leadership of the
+    mysterious Count Dooku, has
+    made it difficult for the limited
+    number of Jedi Knights to maintain 
+    peace and order in the galaxy.
+    
+    Senator Amidala, the former
+    Queen of Naboo, is returning
+    to the Galactic Senate to vote
+    on the critical issue of creating
+    an ARMY OF THE REPUBLIC
+    to assist the overwhelmed
+    Jedi....
+  producer: Rick McCallum
+  title: Attack of the Clones
+  edges:
+    has_person:
+    - 1
+    - 2
+    - 5
+    - 6
+    - 9
+    - 10
+    - 18
+    - 19
+    - 20
+    - 31
+    - 33
+    - 34
+    - 38
+    - 41
+    - 44
+    - 49
+    - 50
+    - 51
+    - 56
+    - 57
+    - 58
+    - 59
+    - 60
+    - 61
+    - 62
+    - 63
+    - 64
+    - 65
+    - 66
+    - 67
+    - 68
+    - 69
+    - 70
+    - 71
+    - 72
+    - 73
+    - 74
+    - 75
+    - 76
+    - 80
+    has_planet:
+    - 0
+    - 7
+    - 8
+    - 9
+    - 10
+    has_starship:
+    - 10
+    - 17
+    - 18
+    - 21
+    - 22
+    - 23
+    - 24
+    - 25
+    - 26
+    has_vehicle:
+    - 0
+    - 20
+    - 21
+    - 22
+    - 23
+    - 24
+    - 25
+    - 26
+    - 27
+    - 28
+    - 29
+    has_species:
+    - 0
+    - 1
+    - 5
+    - 11
+    - 12
+    - 14
+    - 27
+    - 28
+    - 29
+    - 30
+    - 31
+    - 32
+    - 33
+    - 34
+- director: George Lucas
+  episode_id: 3
+  opening_crawl: |-
+    War! The Republic is crumbling
+    under attacks by the ruthless
+    Sith Lord, Count Dooku.
+    There are heroes on both sides.
+    Evil is everywhere.
+    
+    In a stunning move, the
+    fiendish droid leader, General
+    Grievous, has swept into the
+    Republic capital and kidnapped
+    Chancellor Palpatine, leader of
+    the Galactic Senate.
+    
+    As the Separatist Droid Army
+    attempts to flee the besieged
+    capital with their valuable
+    hostage, two Jedi Knights lead a
+    desperate mission to rescue the
+    captive Chancellor....
+  producer: Rick McCallum
+  title: Revenge of the Sith
+  edges:
+    has_person:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 9
+    - 10
+    - 11
+    - 12
+    - 18
+    - 19
+    - 31
+    - 33
+    - 44
+    - 49
+    - 50
+    - 51
+    - 52
+    - 53
+    - 54
+    - 56
+    - 61
+    - 62
+    - 65
+    - 66
+    - 73
+    - 76
+    - 77
+    - 78
+    - 79
+    - 80
+    - 81
+    has_planet:
+    - 0
+    - 1
+    - 4
+    - 7
+    - 8
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    - 18
+    has_starship:
+    - 0
+    - 17
+    - 23
+    - 27
+    - 28
+    - 29
+    - 30
+    - 31
+    - 32
+    - 33
+    - 34
+    - 35
+    has_vehicle:
+    - 13
+    - 23
+    - 25
+    - 28
+    - 30
+    - 31
+    - 32
+    - 33
+    - 34
+    - 35
+    - 36
+    - 37
+    - 38
+    has_species:
+    - 0
+    - 1
+    - 2
+    - 5
+    - 14
+    - 18
+    - 19
+    - 22
+    - 23
+    - 24
+    - 25
+    - 26
+    - 27
+    - 28
+    - 29
+    - 32
+    - 33
+    - 34
+    - 35
+    - 36
+person:
+- birth_year: 19BBY
+  eye_color: blue
+  ssn: 545-02-3265
+  gender: male
+  hair_color: blond and my ssn is 545-02-3265
+  height: 172
+  mass: 77.0
+  name: Luke Skywalker
+  skin_color: fair
+  edges:
+    piloted_starship:
+    - 6
+    - 11
+    piloted_vehicle:
+    - 4
+    - 12
+- birth_year: 112BBY
+  eye_color: yellow
+  ssn: 545-02-3266
+  gender: n/a
+  hair_color: n/a
+  height: 167
+  mass: 75.0
+  name: C-3PO
+  skin_color: gold
+  edges:
+    is_of_type:
+    - 1
+- birth_year: 33BBY
+  eye_color: red
+  ssn: 545-02-3267
+  gender: n/a
+  hair_color: n/a
+  height: 96
+  mass: 32.0
+  name: R2-D2
+  skin_color: white, blue
+  edges:
+    is_of_type:
+    - 1
+- birth_year: 41.9BBY
+  eye_color: yellow
+  ssn: 545-02-3268
+  gender: male
+  hair_color: none
+  height: 202
+  mass: 136.0
+  name: Darth Vader
+  skin_color: white
+  edges:
+    piloted_starship:
+    - 7
+- birth_year: 19BBY
+  eye_color: brown
+  ssn: 545-02-3269
+  gender: female
+  hair_color: brown
+  height: 150
+  mass: 49.0
+  name: Leia Organa
+  skin_color: light
+  edges:
+    piloted_vehicle:
+    - 12
+- birth_year: 52BBY
+  eye_color: blue
+  ssn: 545-02-3270
+  gender: male
+  hair_color: brown, grey
+  height: 178
+  mass: 120.0
+  name: Owen Lars
+  skin_color: light
+  edges: {}
+- birth_year: 47BBY
+  eye_color: blue
+  ssn: 545-02-3271
+  gender: female
+  hair_color: brown
+  height: 165
+  mass: 75.0
+  name: Beru Whitesun lars
+  skin_color: light
+  edges: {}
+- birth_year: unknown
+  eye_color: red
+  ssn: 545-02-3272
+  gender: n/a
+  hair_color: n/a
+  height: 97
+  mass: 32.0
+  name: R5-D4
+  skin_color: white, red
+  edges:
+    is_of_type:
+    - 1
+- birth_year: 24BBY
+  eye_color: brown
+  ssn: 545-02-3273
+  gender: male
+  hair_color: black
+  height: 183
+  mass: 84.0
+  name: Biggs Darklighter
+  skin_color: light
+  edges:
+    piloted_starship:
+    - 6
+- birth_year: 57BBY
+  eye_color: blue-gray
+  ssn: 545-02-3274
+  gender: male
+  hair_color: auburn, white
+  height: 182
+  mass: 77.0
+  name: Obi-Wan Kenobi
+  skin_color: fair
+  edges:
+    piloted_starship:
+    - 23
+    - 27
+    - 30
+    - 31
+    - 34
+    piloted_vehicle:
+    - 18
+- birth_year: 41.9BBY
+  eye_color: blue
+  ssn: 545-02-3275
+  gender: male
+  hair_color: blond
+  height: 188
+  mass: 84.0
+  name: Anakin Skywalker
+  skin_color: fair
+  edges:
+    piloted_starship:
+    - 18
+    - 27
+    - 31
+    piloted_vehicle:
+    - 20
+    - 22
+- birth_year: 64BBY
+  eye_color: blue
+  ssn: 545-02-3276
+  gender: male
+  hair_color: auburn, grey
+  height: 180
+  name: Wilhuff Tarkin
+  skin_color: fair
+  edges: {}
+- birth_year: 200BBY
+  eye_color: blue
+  ssn: 545-02-3277
+  gender: male
+  hair_color: brown
+  height: 228
+  mass: 112.0
+  name: Chewbacca
+  skin_color: unknown
+  edges:
+    piloted_starship:
+    - 4
+    - 11
+    piloted_vehicle:
+    - 7
+    is_of_type:
+    - 2
+- birth_year: 29BBY
+  eye_color: brown
+  ssn: 545-02-3278
+  gender: male
+  hair_color: brown
+  height: 180
+  mass: 80.0
+  name: Han Solo
+  skin_color: fair
+  edges:
+    piloted_starship:
+    - 4
+    - 11
+- birth_year: 44BBY
+  eye_color: black
+  ssn: 545-02-3279
+  gender: male
+  hair_color: n/a
+  height: 173
+  mass: 74.0
+  name: Greedo
+  skin_color: green
+  edges:
+    is_of_type:
+    - 3
+- birth_year: 600BBY
+  eye_color: orange
+  ssn: 545-02-3280
+  gender: hermaphrodite
+  hair_color: n/a
+  height: 175
+  mass: 1358.0
+  name: Jabba Desilijic Tiure
+  skin_color: green-tan, brown
+  edges:
+    is_of_type:
+    - 4
+- birth_year: 21BBY
+  eye_color: hazel
+  ssn: 545-02-3281
+  gender: male
+  hair_color: brown
+  height: 170
+  mass: 77.0
+  name: Wedge Antilles
+  skin_color: fair
+  edges:
+    piloted_starship:
+    - 6
+    piloted_vehicle:
+    - 4
+- birth_year: unknown
+  eye_color: blue
+  ssn: 545-02-3282
+  gender: male
+  hair_color: brown
+  height: 180
+  mass: 110.0
+  name: Jek Tono Porkins
+  skin_color: fair
+  edges:
+    piloted_starship:
+    - 6
+- birth_year: 896BBY
+  eye_color: brown
+  ssn: 545-02-3283
+  gender: male
+  hair_color: white
+  height: 66
+  mass: 17.0
+  name: Yoda
+  skin_color: green
+  edges:
+    is_of_type:
+    - 5
+- birth_year: 82BBY
+  eye_color: yellow
+  ssn: 545-02-3284
+  gender: male
+  hair_color: grey
+  height: 170
+  mass: 75.0
+  name: Palpatine
+  skin_color: pale
+  edges: {}
+- birth_year: 31.5BBY
+  eye_color: brown
+  ssn: 545-02-3285
+  gender: male
+  hair_color: black
+  height: 183
+  mass: 78.2
+  name: Boba Fett
+  skin_color: fair
+  edges:
+    piloted_starship:
+    - 10
+- birth_year: 15BBY
+  eye_color: red
+  ssn: 545-02-3286
+  gender: none
+  hair_color: none
+  height: 200
+  mass: 140.0
+  name: IG-88
+  skin_color: metal
+  edges:
+    is_of_type:
+    - 1
+- birth_year: 53BBY
+  eye_color: red
+  ssn: 545-02-3288
+  gender: male
+  hair_color: none
+  height: 190
+  mass: 113.0
+  name: Bossk
+  skin_color: green
+  edges:
+    is_of_type:
+    - 6
+- birth_year: 31BBY
+  eye_color: brown
+  ssn: 545-02-3289
+  gender: male
+  hair_color: black
+  height: 177
+  mass: 79.0
+  name: Lando Calrissian
+  skin_color: dark
+  edges:
+    piloted_starship:
+    - 4
+- birth_year: 37BBY
+  eye_color: blue
+  ssn: 545-02-3290
+  gender: male
+  hair_color: none
+  height: 175
+  mass: 79.0
+  name: Lobot
+  skin_color: light
+  edges: {}
+- birth_year: 41BBY
+  ssn: 545-02-3291
+  eye_color: orange
+  gender: male
+  hair_color: none
+  height: 180
+  mass: 83.0
+  name: Ackbar
+  skin_color: brown mottle
+  edges:
+    is_of_type:
+    - 7
+- birth_year: 48BBY
+  eye_color: blue
+  ssn: 545-02-3292
+  gender: female
+  hair_color: auburn
+  height: 150
+  name: Mon Mothma
+  skin_color: fair
+  edges: {}
+- birth_year: unknown
+  eye_color: brown
+  ssn: 545-02-3293
+  gender: male
+  hair_color: brown
+  height: -1
+  name: Arvel Crynyd
+  skin_color: fair
+  edges:
+    piloted_starship:
+    - 14
+- birth_year: 8BBY
+  eye_color: brown
+  ssn: 545-02-3294
+  gender: male
+  hair_color: brown
+  height: 88
+  mass: 20.0
+  name: Wicket Systri Warrick
+  skin_color: brown
+  edges:
+    is_of_type:
+    - 8
+- birth_year: unknown
+  eye_color: black
+  ssn: 545-02-3295
+  gender: male
+  hair_color: none
+  height: 160
+  mass: 68.0
+  name: Nien Nunb
+  skin_color: grey
+  edges:
+    piloted_starship:
+    - 4
+    is_of_type:
+    - 9
+- birth_year: 92BBY
+  eye_color: blue
+  ssn: 545-02-3296
+  gender: male
+  hair_color: brown
+  height: 193
+  mass: 89.0
+  name: Qui-Gon Jinn
+  skin_color: fair
+  edges:
+    piloted_vehicle:
+    - 18
+- birth_year: unknown
+  eye_color: red
+  ssn: 545-02-3297
+  gender: male
+  hair_color: none
+  height: 191
+  mass: 90.0
+  name: Nute Gunray
+  skin_color: mottled green
+  edges:
+    is_of_type:
+    - 10
+- birth_year: 91BBY
+  eye_color: blue
+  ssn: 545-02-3298
+  gender: male
+  hair_color: blond
+  height: 170
+  name: Finis Valorum
+  skin_color: fair
+  edges: {}
+- birth_year: 46BBY
+  eye_color: brown
+  ssn: 545-02-3299
+  gender: female
+  hair_color: brown
+  height: 185
+  mass: 45.0
+  name: Padmé Amidala
+  skin_color: light
+  edges:
+    piloted_starship:
+    - 18
+    - 24
+    - 30
+- birth_year: 52BBY
+  eye_color: orange
+  ssn: 545-02-3300
+  gender: male
+  hair_color: none
+  height: 196
+  mass: 66.0
+  name: Jar Jar Binks
+  skin_color: orange
+  edges:
+    is_of_type:
+    - 11
+- birth_year: unknown
+  eye_color: orange
+  ssn: 545-02-3301
+  gender: male
+  hair_color: none
+  height: 224
+  mass: 82.0
+  name: Roos Tarpals
+  skin_color: grey
+  edges:
+    is_of_type:
+    - 11
+- birth_year: unknown
+  eye_color: orange
+  ssn: 545-02-3302
+  gender: male
+  hair_color: none
+  height: 206
+  name: Rugor Nass
+  skin_color: green
+  edges:
+    is_of_type:
+    - 11
+- birth_year: unknown
+  eye_color: blue
+  ssn: 545-02-3303
+  gender: male
+  hair_color: brown
+  height: 183
+  name: Ric Olié
+  skin_color: fair
+  edges:
+    piloted_starship:
+    - 19
+- birth_year: unknown
+  eye_color: yellow
+  ssn: 545-02-3304
+  gender: male
+  hair_color: black
+  height: 137
+  name: Watto
+  skin_color: blue, grey
+  edges:
+    is_of_type:
+    - 12
+- birth_year: unknown
+  eye_color: orange
+  ssn: 545-02-3305
+  gender: male
+  hair_color: none
+  height: 112
+  mass: 40.0
+  name: Sebulba
+  skin_color: grey, red
+  edges:
+    is_of_type:
+    - 13
+- birth_year: 62BBY
+  eye_color: brown
+  ssn: 545-02-3306
+  gender: male
+  hair_color: black
+  height: 183
+  name: Quarsh Panaka
+  skin_color: dark
+  edges: {}
+- birth_year: 72BBY
+  eye_color: brown
+  ssn: 545-02-3307
+  gender: female
+  hair_color: black
+  height: 163
+  name: Shmi Skywalker
+  skin_color: fair
+  edges: {}
+- birth_year: 54BBY
+  eye_color: yellow
+  ssn: 545-02-3308
+  gender: male
+  hair_color: none
+  height: 175
+  mass: 80.0
+  name: Darth Maul
+  skin_color: red
+  edges:
+    piloted_starship:
+    - 20
+    piloted_vehicle:
+    - 19
+    is_of_type:
+    - 21
+- birth_year: unknown
+  eye_color: pink
+  ssn: 545-02-3309
+  gender: male
+  hair_color: none
+  height: 180
+  name: Bib Fortuna
+  skin_color: pale
+  edges:
+    is_of_type:
+    - 14
+- birth_year: 48BBY
+  eye_color: hazel
+  ssn: 545-02-3310
+  gender: female
+  hair_color: none
+  height: 178
+  mass: 55.0
+  name: Ayla Secura
+  skin_color: blue
+  edges:
+    is_of_type:
+    - 14
+- birth_year: unknown
+  eye_color: unknown
+  ssn: 545-02-3311
+  gender: male
+  hair_color: none
+  height: 79
+  mass: 15.0
+  name: Ratts Tyerel
+  skin_color: grey, blue
+  edges:
+    is_of_type:
+    - 15
+- birth_year: unknown
+  eye_color: yellow
+  ssn: 545-02-3312
+  gender: male
+  hair_color: none
+  height: 94
+  mass: 45.0
+  name: Dud Bolt
+  skin_color: blue, grey
+  edges:
+    is_of_type:
+    - 16
+- birth_year: unknown
+  eye_color: black
+  ssn: 545-02-3313
+  gender: male
+  hair_color: none
+  height: 122
+  name: Gasgano
+  skin_color: white, blue
+  edges:
+    is_of_type:
+    - 17
+- birth_year: unknown
+  eye_color: orange
+  ssn: 545-02-3314
+  gender: male
+  hair_color: none
+  height: 163
+  mass: 65.0
+  name: Ben Quadinaros
+  skin_color: grey, green, yellow
+  edges:
+    is_of_type:
+    - 18
+- birth_year: 72BBY
+  eye_color: brown
+  ssn: 545-02-3315
+  gender: male
+  hair_color: none
+  height: 188
+  mass: 84.0
+  name: Mace Windu
+  skin_color: dark
+  edges: {}
+- birth_year: 92BBY
+  eye_color: yellow
+  ssn: 545-02-3316
+  gender: male
+  hair_color: white
+  height: 198
+  mass: 82.0
+  name: Ki-Adi-Mundi
+  skin_color: pale
+  edges:
+    is_of_type:
+    - 19
+- birth_year: unknown
+  eye_color: black
+  ssn: 545-02-3317
+  gender: male
+  hair_color: none
+  height: 196
+  mass: 87.0
+  name: Kit Fisto
+  skin_color: green
+  edges:
+    is_of_type:
+    - 20
+- birth_year: unknown
+  eye_color: brown
+  ssn: 545-02-3318
+  gender: male
+  hair_color: black
+  height: 171
+  name: Eeth Koth
+  skin_color: brown
+  edges:
+    is_of_type:
+    - 21
+- birth_year: unknown
+  eye_color: blue
+  ssn: 545-02-3319
+  gender: female
+  hair_color: none
+  height: 184
+  mass: 50.0
+  name: Adi Gallia
+  skin_color: dark
+  edges:
+    is_of_type:
+    - 22
+- birth_year: unknown
+  eye_color: orange
+  ssn: 545-02-3320
+  gender: male
+  hair_color: none
+  height: 188
+  name: Saesee Tiin
+  skin_color: pale
+  edges:
+    is_of_type:
+    - 23
+- birth_year: unknown
+  eye_color: yellow
+  ssn: 545-02-3321
+  gender: male
+  hair_color: none
+  height: 264
+  name: Yarael Poof
+  skin_color: white
+  edges:
+    is_of_type:
+    - 24
+- birth_year: 22BBY
+  eye_color: black
+  ssn: 545-02-3322
+  gender: male
+  hair_color: none
+  height: 188
+  mass: 80.0
+  name: Plo Koon
+  skin_color: orange
+  edges:
+    piloted_starship:
+    - 23
+    is_of_type:
+    - 25
+- birth_year: unknown
+  eye_color: blue
+  ssn: 545-02-3324
+  gender: male
+  hair_color: none
+  height: 196
+  name: Mas Amedda
+  skin_color: blue
+  edges:
+    is_of_type:
+    - 26
+- birth_year: unknown
+  eye_color: brown
+  ssn: 545-02-3325
+  gender: male
+  hair_color: black
+  height: 185
+  mass: 85.0
+  name: Gregar Typho
+  skin_color: dark
+  edges:
+    piloted_starship:
+    - 18
+- birth_year: unknown
+  eye_color: brown
+  ssn: 545-02-3326
+  gender: female
+  hair_color: brown
+  height: 157
+  name: Cordé
+  skin_color: light
+  edges: {}
+- birth_year: 82BBY
+  eye_color: blue
+  ssn: 545-02-3327
+  gender: male
+  hair_color: brown
+  height: 183
+  name: Cliegg Lars
+  skin_color: fair
+  edges: {}
+- birth_year: unknown
+  eye_color: yellow
+  ssn: 545-02-3328
+  gender: male
+  hair_color: none
+  height: 183
+  mass: 80.0
+  name: Poggle the Lesser
+  skin_color: green
+  edges:
+    is_of_type:
+    - 27
+- birth_year: 58BBY
+  eye_color: blue
+  ssn: 545-02-3329
+  gender: female
+  hair_color: black
+  height: 170
+  mass: 56.2
+  name: Luminara Unduli
+  skin_color: yellow
+  edges:
+    is_of_type:
+    - 28
+- birth_year: 40BBY
+  eye_color: blue
+  ssn: 545-02-3330
+  gender: female
+  hair_color: black
+  height: 166
+  mass: 50.0
+  name: Barriss Offee
+  skin_color: yellow
+  edges:
+    is_of_type:
+    - 28
+- birth_year: unknown
+  eye_color: brown
+  ssn: 545-02-3331
+  gender: female
+  hair_color: brown
+  height: 165
+  name: Dormé
+  skin_color: light
+  edges:
+    is_of_type:
+    - 0
+- birth_year: 102BBY
+  eye_color: brown
+  ssn: 545-02-3333
+  gender: male
+  hair_color: white
+  height: 193
+  mass: 80.0
+  name: Dooku
+  skin_color: fair
+  edges:
+    piloted_vehicle:
+    - 27
+    is_of_type:
+    - 0
+- birth_year: 67BBY
+  eye_color: brown
+  ssn: 545-02-3334
+  gender: male
+  hair_color: black
+  height: 191
+  name: Bail Prestor Organa
+  skin_color: tan
+  edges:
+    is_of_type:
+    - 0
+- birth_year: 66BBY
+  eye_color: brown
+  ssn: 545-02-3335
+  gender: male
+  hair_color: black
+  height: 183
+  mass: 79.0
+  name: Jango Fett
+  skin_color: tan
+  edges: {}
+- birth_year: unknown
+  ssn: 545-02-3336
+  eye_color: yellow
+  gender: female
+  hair_color: blonde
+  height: 168
+  mass: 55.0
+  name: Zam Wesell
+  skin_color: fair, green, yellow
+  edges:
+    piloted_vehicle:
+    - 21
+    is_of_type:
+    - 29
+- birth_year: unknown
+  eye_color: yellow
+  ssn: 545-02-3337
+  gender: male
+  hair_color: none
+  height: 198
+  mass: 102.0
+  name: Dexter Jettster
+  skin_color: brown
+  edges:
+    is_of_type:
+    - 30
+- birth_year: unknown
+  eye_color: black
+  ssn: 545-02-3338
+  gender: male
+  hair_color: none
+  height: 229
+  mass: 88.0
+  name: Lama Su
+  skin_color: grey
+  edges:
+    is_of_type:
+    - 31
+- birth_year: unknown
+  eye_color: black
+  ssn: 545-02-3339
+  gender: female
+  hair_color: none
+  height: 213
+  name: Taun We
+  skin_color: grey
+  edges:
+    is_of_type:
+    - 31
+- birth_year: unknown
+  eye_color: blue
+  ssn: 545-02-3340
+  gender: female
+  hair_color: white
+  height: 167
+  name: Jocasta Nu
+  skin_color: fair
+  edges:
+    is_of_type:
+    - 0
+- birth_year: unknown
+  eye_color: red, blue
+  ssn: 545-02-3341
+  gender: female
+  hair_color: none
+  height: 96
+  name: R4-P17
+  skin_color: silver, red
+  edges: {}
+- birth_year: unknown
+  eye_color: unknown
+  ssn: 545-02-3342
+  gender: male
+  hair_color: none
+  height: 193
+  mass: 48.0
+  name: Wat Tambor
+  skin_color: green, grey
+  edges:
+    is_of_type:
+    - 32
+- birth_year: unknown
+  eye_color: gold
+  ssn: 545-02-3343
+  gender: male
+  hair_color: none
+  height: 191
+  name: San Hill
+  skin_color: grey
+  edges:
+    is_of_type:
+    - 33
+- birth_year: unknown
+  eye_color: black
+  ssn: 545-02-3344
+  gender: female
+  hair_color: none
+  height: 178
+  mass: 57.0
+  name: Shaak Ti
+  skin_color: red, blue, white
+  edges:
+    is_of_type:
+    - 34
+- birth_year: unknown
+  eye_color: green, yellow
+  ssn: 545-02-3345
+  gender: male
+  hair_color: none
+  height: 216
+  mass: 159.0
+  name: Grievous
+  skin_color: brown, white
+  edges:
+    piloted_starship:
+    - 34
+    piloted_vehicle:
+    - 30
+    is_of_type:
+    - 35
+- birth_year: unknown
+  eye_color: blue
+  ssn: 545-02-3346
+  gender: male
+  hair_color: brown
+  height: 234
+  mass: 136.0
+  name: Tarfful
+  skin_color: brown
+  edges:
+    is_of_type:
+    - 2
+- birth_year: unknown
+  eye_color: brown
+  ssn: 545-02-3348
+  gender: male
+  hair_color: brown
+  height: 188
+  mass: 79.0
+  name: Raymus Antilles
+  skin_color: light
+  edges: {}
+- birth_year: unknown
+  eye_color: white
+  ssn: 545-02-3350
+  gender: female
+  hair_color: none
+  height: 178
+  mass: 48.0
+  name: Sly Moore
+  skin_color: pale
+  edges: {}
+- birth_year: unknown
+  eye_color: black
+  ssn: 545-02-3354
+  gender: male
+  hair_color: none
+  height: 206
+  mass: 80.0
+  name: Tion Medon
+  skin_color: grey
+  edges:
+    is_of_type:
+    - 36
+planet:
+- climate: arid
+  diameter: 10465
+  gravity: 1 standard
+  name: Tatooine
+  orbital_period: "304"
+  population: 200000
+  rotation_period: "23"
+  surface_water: "1"
+  terrain: desert
+  edges: {}
+- climate: temperate
+  diameter: 12500
+  gravity: 1 standard
+  name: Alderaan
+  orbital_period: "364"
+  population: 2000000000
+  rotation_period: "24"
+  surface_water: "40"
+  terrain: grasslands, mountains
+  edges: {}
+- climate: temperate, tropical
+  diameter: 10200
+  gravity: 1 standard
+  name: Yavin IV
+  orbital_period: "4818"
+  population: 1000
+  rotation_period: "24"
+  surface_water: "8"
+  terrain: jungle, rainforests
+  edges: {}
+- climate: frozen
+  diameter: 7200
+  gravity: 1.1 standard
+  name: Hoth
+  orbital_period: "549"
+  population: -1
+  rotation_period: "23"
+  surface_water: "100"
+  terrain: tundra, ice caves, mountain ranges
+  edges: {}
+- climate: murky
+  diameter: 8900
+  gravity: N/A
+  name: Dagobah
+  orbital_period: "341"
+  population: -1
+  rotation_period: "23"
+  surface_water: "8"
+  terrain: swamp, jungles
+  edges: {}
+- climate: temperate
+  diameter: 118000
+  gravity: 1.5 (surface), 1 standard (Cloud City)
+  name: Bespin
+  orbital_period: "5110"
+  population: 6000000
+  rotation_period: "12"
+  surface_water: "0"
+  terrain: gas giant
+  edges: {}
+- climate: temperate
+  diameter: 4900
+  gravity: 0.85 standard
+  name: Endor
+  orbital_period: "402"
+  population: 30000000
+  rotation_period: "18"
+  surface_water: "8"
+  terrain: forests, mountains, lakes
+  edges: {}
+- climate: temperate
+  diameter: 12120
+  gravity: 1 standard
+  name: Naboo
+  orbital_period: "312"
+  population: 4500000000
+  rotation_period: "26"
+  surface_water: "12"
+  terrain: grassy hills, swamps, forests, mountains
+  edges: {}
+- climate: temperate
+  diameter: 12240
+  gravity: 1 standard
+  name: Coruscant
+  orbital_period: "368"
+  population: 1000000000000
+  rotation_period: "24"
+  surface_water: unknown
+  terrain: cityscape, mountains
+  edges: {}
+- climate: temperate
+  diameter: 19720
+  gravity: 1 standard
+  name: Kamino
+  orbital_period: "463"
+  population: 1000000000
+  rotation_period: "27"
+  surface_water: "100"
+  terrain: ocean
+  edges: {}
+- climate: temperate, arid
+  diameter: 11370
+  gravity: 0.9 standard
+  name: Geonosis
+  orbital_period: "256"
+  population: 100000000000
+  rotation_period: "30"
+  surface_water: "5"
+  terrain: rock, desert, mountain, barren
+  edges: {}
+- climate: temperate, arid, windy
+  diameter: 12900
+  gravity: 1 standard
+  name: Utapau
+  orbital_period: "351"
+  population: 95000000
+  rotation_period: "27"
+  surface_water: "0.9"
+  terrain: scrublands, savanna, canyons, sinkholes
+  edges: {}
+- climate: hot
+  diameter: 4200
+  gravity: 1 standard
+  name: Mustafar
+  orbital_period: "412"
+  population: 20000
+  rotation_period: "36"
+  surface_water: "0"
+  terrain: volcanoes, lava rivers, mountains, caves
+  edges: {}
+- climate: tropical
+  diameter: 12765
+  gravity: 1 standard
+  name: Kashyyyk
+  orbital_period: "381"
+  population: 45000000
+  rotation_period: "26"
+  surface_water: "60"
+  terrain: jungle, forests, lakes, rivers
+  edges: {}
+- climate: artificial temperate 
+  gravity: 0.56 standard
+  name: Polis Massa
+  orbital_period: "590"
+  population: 1000000
+  rotation_period: "24"
+  surface_water: "0"
+  terrain: airless asteroid
+  edges: {}
+- climate: frigid
+  diameter: 10088
+  gravity: 1 standard
+  name: Mygeeto
+  orbital_period: "167"
+  population: 19000000
+  rotation_period: "12"
+  surface_water: unknown
+  terrain: glaciers, mountains, ice canyons
+  edges: {}
+- climate: hot, humid
+  diameter: 9100
+  gravity: 0.75 standard
+  name: Felucia
+  orbital_period: "231"
+  population: 8500000
+  rotation_period: "34"
+  surface_water: unknown
+  terrain: fungus forests
+  edges: {}
+- climate: temperate, moist
+  gravity: 1 standard
+  name: Cato Neimoidia
+  orbital_period: "278"
+  population: 10000000
+  rotation_period: "25"
+  surface_water: unknown
+  terrain: mountains, fields, forests, rock arches
+  edges: {}
+- climate: hot
+  diameter: 14920
+  gravity: unknown
+  name: Saleucami
+  orbital_period: "392"
+  population: 1400000000
+  rotation_period: "26"
+  surface_water: unknown
+  terrain: caves, desert, mountains, volcanoes
+  edges: {}
+- climate: temperate
+  gravity: 1 standard
+  name: Stewjon
+  orbital_period: unknown
+  population: -1
+  rotation_period: unknown
+  surface_water: unknown
+  terrain: grass
+  edges: {}
+- climate: polluted
+  diameter: 13490
+  gravity: 1 standard
+  name: Eriadu
+  orbital_period: "360"
+  population: 22000000000
+  rotation_period: "24"
+  surface_water: unknown
+  terrain: cityscape
+  edges: {}
+- climate: temperate
+  diameter: 11000
+  gravity: 1 standard
+  name: Corellia
+  orbital_period: "329"
+  population: 3000000000
+  rotation_period: "25"
+  surface_water: "70"
+  terrain: plains, urban, hills, forests
+  edges: {}
+- climate: hot
+  diameter: 7549
+  gravity: 1 standard
+  name: Rodia
+  orbital_period: "305"
+  population: 1300000000
+  rotation_period: "29"
+  surface_water: "60"
+  terrain: jungles, oceans, urban, swamps
+  edges: {}
+- climate: temperate
+  diameter: 12150
+  gravity: 1 standard
+  name: Nal Hutta
+  orbital_period: "413"
+  population: 7000000000
+  rotation_period: "87"
+  surface_water: unknown
+  terrain: urban, oceans, swamps, bogs
+  edges: {}
+- climate: temperate
+  diameter: 9830
+  gravity: 1 standard
+  name: Dantooine
+  orbital_period: "378"
+  population: 1000
+  rotation_period: "25"
+  surface_water: unknown
+  terrain: oceans, savannas, mountains, grasslands
+  edges: {}
+- climate: temperate
+  diameter: 6400
+  gravity: unknown
+  name: Bestine IV
+  orbital_period: "680"
+  population: 62000000
+  rotation_period: "26"
+  surface_water: "98"
+  terrain: rocky islands, oceans
+  edges: {}
+- climate: temperate
+  diameter: 14050
+  gravity: 1 standard
+  name: Ord Mantell
+  orbital_period: "334"
+  population: 4000000000
+  rotation_period: "26"
+  surface_water: "10"
+  terrain: plains, seas, mesas
+  edges: {}
+- climate: unknown
+  gravity: unknown
+  name: unknown
+  orbital_period: "0"
+  population: -1
+  rotation_period: "0"
+  surface_water: unknown
+  terrain: unknown
+  edges: {}
+- climate: arid
+  gravity: 0.62 standard
+  name: Trandosha
+  orbital_period: "371"
+  population: 42000000
+  rotation_period: "25"
+  surface_water: unknown
+  terrain: mountains, seas, grasslands, deserts
+  edges: {}
+- climate: arid
+  gravity: 1 standard
+  name: Socorro
+  orbital_period: "326"
+  population: 300000000
+  rotation_period: "20"
+  surface_water: unknown
+  terrain: deserts, mountains
+  edges: {}
+- climate: temperate
+  diameter: 11030
+  gravity: "1"
+  name: Mon Cala
+  orbital_period: "398"
+  population: 27000000000
+  rotation_period: "21"
+  surface_water: "100"
+  terrain: oceans, reefs, islands
+  edges: {}
+- climate: temperate
+  diameter: 13500
+  gravity: "1"
+  name: Chandrila
+  orbital_period: "368"
+  population: 1200000000
+  rotation_period: "20"
+  surface_water: "40"
+  terrain: plains, forests
+  edges: {}
+- climate: superheated
+  diameter: 12780
+  gravity: "1"
+  name: Sullust
+  orbital_period: "263"
+  population: 18500000000
+  rotation_period: "20"
+  surface_water: "5"
+  terrain: mountains, volcanoes, rocky deserts
+  edges: {}
+- climate: temperate
+  diameter: 7900
+  gravity: "1"
+  name: Toydaria
+  orbital_period: "184"
+  population: 11000000
+  rotation_period: "21"
+  surface_water: unknown
+  terrain: swamps, lakes
+  edges: {}
+- climate: arid, temperate, tropical
+  diameter: 18880
+  gravity: "1.56"
+  name: Malastare
+  orbital_period: "201"
+  population: 2000000000
+  rotation_period: "26"
+  surface_water: unknown
+  terrain: swamps, deserts, jungles, mountains
+  edges: {}
+- climate: temperate
+  diameter: 10480
+  gravity: "0.9"
+  name: Dathomir
+  orbital_period: "491"
+  population: 5200
+  rotation_period: "24"
+  surface_water: unknown
+  terrain: forests, deserts, savannas
+  edges: {}
+- climate: temperate, arid, subartic
+  diameter: 10600
+  gravity: "1"
+  name: Ryloth
+  orbital_period: "305"
+  population: 1500000000
+  rotation_period: "30"
+  surface_water: "5"
+  terrain: mountains, valleys, deserts, tundra
+  edges: {}
+- climate: unknown
+  diameter: -1
+  gravity: unknown
+  name: Aleen Minor
+  orbital_period: unknown
+  population: -1
+  rotation_period: unknown
+  surface_water: unknown
+  terrain: unknown
+  edges: {}
+- climate: temperate, artic
+  diameter: 14900
+  gravity: "1"
+  name: Vulpter
+  orbital_period: "391"
+  population: 421000000
+  rotation_period: "22"
+  surface_water: unknown
+  terrain: urban, barren
+  edges: {}
+- climate: unknown
+  diameter: -1
+  gravity: unknown
+  name: Troiken
+  orbital_period: unknown
+  population: -1
+  rotation_period: unknown
+  surface_water: unknown
+  terrain: desert, tundra, rainforests, mountains
+  edges: {}
+- climate: unknown
+  diameter: 12190
+  gravity: unknown
+  name: Tund
+  orbital_period: "1770"
+  rotation_period: "48"
+  surface_water: unknown
+  terrain: barren, ash
+  edges: {}
+- climate: temperate
+  diameter: 10120
+  gravity: "0.98"
+  name: Haruun Kal
+  orbital_period: "383"
+  population: 705300
+  rotation_period: "25"
+  surface_water: unknown
+  terrain: toxic cloudsea, plateaus, volcanoes
+  edges: {}
+- climate: temperate
+  diameter: -1
+  gravity: "1"
+  name: Cerea
+  orbital_period: "386"
+  population: 450000000
+  rotation_period: "27"
+  surface_water: "20"
+  terrain: verdant
+  edges: {}
+- climate: tropical, temperate
+  diameter: 15600
+  gravity: "1"
+  name: Glee Anselm
+  orbital_period: "206"
+  population: 500000000
+  rotation_period: "33"
+  surface_water: "80"
+  terrain: lakes, islands, swamps, seas
+  edges: {}
+- climate: unknown
+  diameter: -1
+  gravity: unknown
+  name: Iridonia
+  orbital_period: "413"
+  population: -1
+  rotation_period: "29"
+  surface_water: unknown
+  terrain: rocky canyons, acid pools
+  edges: {}
+- climate: unknown
+  diameter: -1
+  gravity: unknown
+  name: Tholoth
+  orbital_period: unknown
+  population: -1
+  rotation_period: unknown
+  surface_water: unknown
+  terrain: unknown
+  edges: {}
+- climate: arid, rocky, windy
+  diameter: -1
+  gravity: "1"
+  name: Iktotch
+  orbital_period: "481"
+  population: -1
+  rotation_period: "22"
+  surface_water: unknown
+  terrain: rocky
+  edges: {}
+- climate: unknown
+  diameter: -1
+  gravity: unknown
+  name: Quermia
+  orbital_period: unknown
+  population: -1
+  rotation_period: unknown
+  surface_water: unknown
+  terrain: unknown
+  edges: {}
+- climate: temperate
+  diameter: 13400
+  gravity: "1"
+  name: Dorin
+  orbital_period: "409"
+  population: -1
+  rotation_period: "22"
+  surface_water: unknown
+  terrain: unknown
+  edges: {}
+- climate: temperate
+  diameter: -1
+  gravity: "1"
+  name: Champala
+  orbital_period: "318"
+  population: 3500000000
+  rotation_period: "27"
+  surface_water: unknown
+  terrain: oceans, rainforests, plateaus
+  edges: {}
+- climate: unknown
+  diameter: -1
+  gravity: unknown
+  name: Mirial
+  orbital_period: unknown
+  population: -1
+  rotation_period: unknown
+  surface_water: unknown
+  terrain: deserts
+  edges: {}
+- climate: unknown
+  diameter: -1
+  gravity: unknown
+  name: Serenno
+  orbital_period: unknown
+  population: -1
+  rotation_period: unknown
+  surface_water: unknown
+  terrain: rainforests, rivers, mountains
+  edges: {}
+- climate: unknown
+  diameter: -1
+  gravity: unknown
+  name: Concord Dawn
+  orbital_period: unknown
+  population: -1
+  rotation_period: unknown
+  surface_water: unknown
+  terrain: jungles, forests, deserts
+  edges: {}
+- climate: unknown
+  diameter: -1
+  gravity: unknown
+  name: Zolan
+  orbital_period: unknown
+  population: -1
+  rotation_period: unknown
+  surface_water: unknown
+  terrain: unknown
+  edges: {}
+- climate: frigid
+  diameter: -1
+  gravity: unknown
+  name: Ojom
+  orbital_period: unknown
+  population: 500000000
+  rotation_period: unknown
+  surface_water: "100"
+  terrain: oceans, glaciers
+  edges: {}
+- climate: temperate
+  diameter: -1
+  gravity: "1"
+  name: Skako
+  orbital_period: "384"
+  population: 500000000000
+  rotation_period: "27"
+  surface_water: unknown
+  terrain: urban, vines
+  edges: {}
+- climate: temperate
+  diameter: 13800
+  gravity: "1"
+  name: Muunilinst
+  orbital_period: "412"
+  population: 5000000000
+  rotation_period: "28"
+  surface_water: "25"
+  terrain: plains, forests, hills, mountains
+  edges: {}
+- climate: temperate
+  diameter: -1
+  gravity: "1"
+  name: Shili
+  orbital_period: unknown
+  population: -1
+  rotation_period: unknown
+  surface_water: unknown
+  terrain: cities, savannahs, seas, plains
+  edges: {}
+- climate: arid, temperate, tropical
+  diameter: 13850
+  gravity: "1"
+  name: Kalee
+  orbital_period: "378"
+  population: 4000000000
+  rotation_period: "23"
+  surface_water: unknown
+  terrain: rainforests, cliffs, canyons, seas
+  edges: {}
+- climate: unknown
+  diameter: -1
+  gravity: unknown
+  name: Umbara
+  orbital_period: unknown
+  population: -1
+  rotation_period: unknown
+  surface_water: unknown
+  terrain: unknown
+  edges: {}
+species:
+- average_height: 180
+  average_lifespan: "120"
+  classification: mammal
+  designation: sentient
+  name: Human
+  skin_color: caucasian, black, asian, hispanic
+  eye_color: brown, blue, green, hazel, grey, amber
+  hair_color: blonde, brown, black, red
+  language: Galactic Basic
+  edges: {}
+- average_height: -1
+  average_lifespan: indefinite
+  classification: artificial
+  designation: sentient
+  name: Droid
+  skin_color: n/a
+  eye_color: n/a
+  hair_color: n/a
+  language: n/a
+  edges: {}
+- average_height: 210
+  average_lifespan: "400"
+  classification: mammal
+  designation: sentient
+  name: Wookie
+  skin_color: gray
+  eye_color: blue, green, yellow, brown, golden, red
+  hair_color: black, brown
+  language: Shyriiwook
+  edges: {}
+- average_height: 170
+  average_lifespan: unknown
+  classification: sentient
+  designation: reptilian
+  name: Rodian
+  skin_color: green, blue
+  eye_color: black
+  hair_color: n/a
+  language: Galatic Basic
+  edges: {}
+- average_height: 300
+  average_lifespan: "1000"
+  classification: gastropod
+  designation: sentient
+  name: Hutt
+  skin_color: green, brown, tan
+  eye_color: yellow, red
+  hair_color: n/a
+  language: Huttese
+  edges: {}
+- average_height: 66
+  average_lifespan: "900"
+  classification: mammal
+  designation: sentient
+  name: Yoda's species
+  skin_color: green, yellow
+  eye_color: brown, green, yellow
+  hair_color: brown, white
+  language: Galactic basic
+  edges: {}
+- average_height: 200
+  average_lifespan: unknown
+  classification: reptile
+  designation: sentient
+  name: Trandoshan
+  skin_color: brown, green
+  eye_color: yellow, orange
+  hair_color: none
+  language: Dosh
+  edges: {}
+- average_height: 160
+  average_lifespan: unknown
+  classification: amphibian
+  designation: sentient
+  name: Mon Calamari
+  skin_color: red, blue, brown, magenta
+  eye_color: yellow
+  hair_color: none
+  language: Mon Calamarian
+  edges: {}
+- average_height: 100
+  average_lifespan: unknown
+  classification: mammal
+  designation: sentient
+  name: Ewok
+  skin_color: brown
+  eye_color: orange, brown
+  hair_color: white, brown, black
+  language: Ewokese
+  edges: {}
+- average_height: 180
+  average_lifespan: unknown
+  classification: mammal
+  designation: sentient
+  name: Sullustan
+  skin_color: pale
+  eye_color: black
+  hair_color: none
+  language: Sullutese
+  edges: {}
+- average_height: 180
+  average_lifespan: unknown
+  classification: unknown
+  designation: sentient
+  name: Neimodian
+  skin_color: grey, green
+  eye_color: red, pink
+  hair_color: none
+  language: Neimoidia
+  edges: {}
+- average_height: 190
+  average_lifespan: unknown
+  classification: amphibian
+  designation: sentient
+  name: Gungan
+  skin_color: brown, green
+  eye_color: orange
+  hair_color: none
+  language: Gungan basic
+  edges: {}
+- average_height: 120
+  average_lifespan: "91"
+  classification: mammal
+  designation: sentient
+  name: Toydarian
+  skin_color: blue, green, grey
+  eye_color: yellow
+  hair_color: none
+  language: Toydarian
+  edges: {}
+- average_height: 100
+  average_lifespan: unknown
+  classification: mammal
+  designation: sentient
+  name: Dug
+  skin_color: brown, purple, grey, red
+  eye_color: yellow, blue
+  hair_color: none
+  language: Dugese
+  edges: {}
+- average_height: 200
+  average_lifespan: unknown
+  classification: mammals
+  designation: sentient
+  name: Twi'lek
+  skin_color: orange, yellow, blue, green, pink, purple, tan
+  eye_color: blue, brown, orange, pink
+  hair_color: none
+  language: Twi'leki
+  edges: {}
+- average_height: 80
+  average_lifespan: "79"
+  classification: reptile
+  designation: sentient
+  name: Aleena
+  skin_color: blue, gray
+  eye_color: unknown
+  hair_color: none
+  language: Aleena
+  edges: {}
+- average_height: 100
+  average_lifespan: unknown
+  classification: unknown
+  designation: sentient
+  name: Vulptereen
+  skin_color: grey
+  eye_color: yellow
+  hair_color: none
+  language: vulpterish
+  edges: {}
+- average_height: 125
+  average_lifespan: unknown
+  classification: unknown
+  designation: sentient
+  name: Xexto
+  skin_color: grey, yellow, purple
+  eye_color: black
+  hair_color: none
+  language: Xextese
+  edges: {}
+- average_height: 200
+  average_lifespan: unknown
+  classification: unknown
+  designation: sentient
+  name: Toong
+  skin_color: grey, green, yellow
+  eye_color: orange
+  hair_color: none
+  language: Tundan
+  edges: {}
+- average_height: 200
+  average_lifespan: unknown
+  classification: mammal
+  designation: sentient
+  name: Cerean
+  skin_color: pale pink
+  eye_color: hazel
+  hair_color: red, blond, black, white
+  language: Cerean
+  edges: {}
+- average_height: 180
+  average_lifespan: "70"
+  classification: amphibian
+  designation: sentient
+  name: Nautolan
+  skin_color: green, blue, brown, red
+  eye_color: black
+  hair_color: none
+  language: Nautila
+  edges: {}
+- average_height: 180
+  average_lifespan: unknown
+  classification: mammal
+  designation: sentient
+  name: Zabrak
+  skin_color: pale, brown, red, orange, yellow
+  eye_color: brown, orange
+  hair_color: black
+  language: Zabraki
+  edges: {}
+- average_height: -1
+  average_lifespan: unknown
+  classification: mammal
+  designation: sentient
+  name: Tholothian
+  skin_color: dark
+  eye_color: blue, indigo
+  hair_color: unknown
+  language: unknown
+  edges: {}
+- average_height: 180
+  average_lifespan: unknown
+  classification: unknown
+  designation: sentient
+  name: Iktotchi
+  skin_color: pink
+  eye_color: orange
+  hair_color: none
+  language: Iktotchese
+  edges: {}
+- average_height: 240
+  average_lifespan: "86"
+  classification: mammal
+  designation: sentient
+  name: Quermian
+  skin_color: white
+  eye_color: yellow
+  hair_color: none
+  language: Quermian
+  edges: {}
+- average_height: 180
+  average_lifespan: "70"
+  classification: unknown
+  designation: sentient
+  name: Kel Dor
+  skin_color: peach, orange, red
+  eye_color: black, silver
+  hair_color: none
+  language: Kel Dor
+  edges: {}
+- average_height: 190
+  average_lifespan: unknown
+  classification: amphibian
+  designation: sentient
+  name: Chagrian
+  skin_color: blue
+  eye_color: blue
+  hair_color: none
+  language: Chagria
+  edges: {}
+- average_height: 178
+  average_lifespan: unknown
+  classification: insectoid
+  designation: sentient
+  name: Geonosian
+  skin_color: green, brown
+  eye_color: green, hazel
+  hair_color: none
+  language: Geonosian
+  edges: {}
+- average_height: 180
+  average_lifespan: unknown
+  classification: mammal
+  designation: sentient
+  name: Mirialan
+  skin_color: yellow, green
+  eye_color: blue, green, red, yellow, brown, orange
+  hair_color: black, brown
+  language: Mirialan
+  edges: {}
+- average_height: 180
+  average_lifespan: "70"
+  classification: reptilian
+  designation: sentient
+  name: Clawdite
+  skin_color: green, yellow
+  eye_color: yellow
+  hair_color: none
+  language: Clawdite
+  edges: {}
+- average_height: 178
+  average_lifespan: "75"
+  classification: amphibian
+  designation: sentient
+  name: Besalisk
+  skin_color: brown
+  eye_color: yellow
+  hair_color: none
+  language: besalisk
+  edges: {}
+- average_height: 220
+  average_lifespan: "80"
+  classification: amphibian
+  designation: sentient
+  name: Kaminoan
+  skin_color: grey, blue
+  eye_color: black
+  hair_color: none
+  language: Kaminoan
+  edges: {}
+- average_height: -1
+  average_lifespan: unknown
+  classification: mammal
+  designation: sentient
+  name: Skakoan
+  skin_color: grey, green
+  eye_color: unknown
+  hair_color: none
+  language: Skakoan
+  edges: {}
+- average_height: 190
+  average_lifespan: "100"
+  classification: mammal
+  designation: sentient
+  name: Muun
+  skin_color: grey, white
+  eye_color: black
+  hair_color: none
+  language: Muun
+  edges: {}
+- average_height: 180
+  average_lifespan: "94"
+  classification: mammal
+  designation: sentient
+  name: Togruta
+  skin_color: red, white, orange, yellow, green, blue
+  eye_color: red, orange, yellow, green, blue, black
+  hair_color: none
+  language: Togruti
+  edges: {}
+- average_height: 170
+  average_lifespan: "80"
+  classification: reptile
+  designation: sentient
+  name: Kaleesh
+  skin_color: brown, orange, tan
+  eye_color: yellow
+  hair_color: none
+  language: Kaleesh
+  edges: {}
+- average_height: 190
+  average_lifespan: "700"
+  classification: mammal
+  designation: sentient
+  name: Pau'an
+  skin_color: grey
+  eye_color: black
+  hair_color: none
+  language: Utapese
+  edges: {}
+starship:
+- cargo_capacity: 3000000
+  class: corvette
+  consumables: 1 year
+  cost_in_credits: 3500000
+  crew: 30-165
+  hyperdrive_rating: "2.0"
+  length: 150.0
+  manufacturer: Corellian Engineering Corporation
+  max_atmosphering_speed: "950"
+  model: CR90 corvette
+  name: CR90 corvette
+  passenger_capacity: 600
+  edges: {}
+- cargo_capacity: 36000000
+  class: Star Destroyer
+  consumables: 2 years
+  cost_in_credits: 150000000
+  crew: 47,060
+  hyperdrive_rating: "2.0"
+  length: 1600.0
+  manufacturer: Kuat Drive Yards
+  max_atmosphering_speed: "975"
+  model: Imperial I-class Star Destroyer
+  name: Star Destroyer
+  passenger_capacity: -1
+  edges: {}
+- cargo_capacity: 180000
+  class: landing craft
+  consumables: 1 month
+  cost_in_credits: 240000
+  crew: "5"
+  hyperdrive_rating: "1.0"
+  length: 38.0
+  manufacturer: Sienar Fleet Systems, Cyngus Spaceworks
+  max_atmosphering_speed: "1000"
+  model: Sentinel-class landing craft
+  name: Sentinel-class landing craft
+  passenger_capacity: 75
+  edges: {}
+- cargo_capacity: 1000000000000
+  class: Deep Space Mobile Battlestation
+  consumables: 3 years
+  cost_in_credits: 1000000000000
+  crew: 342,953
+  hyperdrive_rating: "4.0"
+  length: 120000.0
+  manufacturer: Imperial Department of Military Research, Sienar Fleet Systems
+  max_atmosphering_speed: n/a
+  model: DS-1 Orbital Battle Station
+  name: Death Star
+  passenger_capacity: 843342
+  edges: {}
+- cargo_capacity: 100000
+  class: Light freighter
+  consumables: 2 months
+  cost_in_credits: 100000
+  crew: "4"
+  hyperdrive_rating: "0.5"
+  length: 34.37
+  manufacturer: Corellian Engineering Corporation
+  max_atmosphering_speed: "1050"
+  model: YT-1300 light freighter
+  name: Millennium Falcon
+  passenger_capacity: 6
+  edges: {}
+- cargo_capacity: 110
+  class: assault starfighter
+  consumables: 1 week
+  cost_in_credits: 134999
+  crew: "2"
+  hyperdrive_rating: "1.0"
+  length: 14.0
+  manufacturer: Koensayr Manufacturing
+  max_atmosphering_speed: 1000km
+  model: BTL Y-wing
+  name: Y-wing
+  edges: {}
+- cargo_capacity: 110
+  class: Starfighter
+  consumables: 1 week
+  cost_in_credits: 149999
+  crew: "1"
+  hyperdrive_rating: "1.0"
+  length: 12.5
+  manufacturer: Incom Corporation
+  max_atmosphering_speed: "1050"
+  model: T-65 X-wing
+  name: X-wing
+  edges: {}
+- cargo_capacity: 150
+  class: Starfighter
+  consumables: 5 days
+  cost_in_credits: -1
+  crew: "1"
+  hyperdrive_rating: "1.0"
+  length: 9.2
+  manufacturer: Sienar Fleet Systems
+  max_atmosphering_speed: "1200"
+  model: Twin Ion Engine Advanced x1
+  name: TIE Advanced x1
+  edges: {}
+- cargo_capacity: 250000000
+  class: Star dreadnought
+  consumables: 6 years
+  cost_in_credits: 1143350000
+  crew: 279,144
+  hyperdrive_rating: "2.0"
+  length: 19000.0
+  manufacturer: Kuat Drive Yards, Fondor Shipyards
+  max_atmosphering_speed: n/a
+  model: Executor-class star dreadnought
+  name: Executor
+  passenger_capacity: 38000
+  edges: {}
+- cargo_capacity: 19000000
+  class: Medium transport
+  consumables: 6 months
+  cost_in_credits: -1
+  crew: "6"
+  hyperdrive_rating: "4.0"
+  length: 90.0
+  manufacturer: Gallofree Yards, Inc.
+  max_atmosphering_speed: "650"
+  model: GR-75 medium transport
+  name: Rebel transport
+  passenger_capacity: 90
+  edges: {}
+- cargo_capacity: 70000
+  class: Patrol craft
+  consumables: 1 month
+  cost_in_credits: -1
+  crew: "1"
+  hyperdrive_rating: "3.0"
+  length: 21.5
+  manufacturer: Kuat Systems Engineering
+  max_atmosphering_speed: "1000"
+  model: Firespray-31-class patrol and attack
+  name: Slave 1
+  passenger_capacity: 6
+  edges: {}
+- cargo_capacity: 80000
+  class: Armed government transport
+  consumables: 2 months
+  cost_in_credits: 240000
+  crew: "6"
+  hyperdrive_rating: "1.0"
+  length: 20.0
+  manufacturer: Sienar Fleet Systems
+  max_atmosphering_speed: "850"
+  model: Lambda-class T-4a shuttle
+  name: Imperial shuttle
+  passenger_capacity: 20
+  edges: {}
+- cargo_capacity: 6000000
+  class: Escort ship
+  consumables: 2 years
+  cost_in_credits: 8500000
+  crew: "854"
+  hyperdrive_rating: "2.0"
+  length: 300.0
+  manufacturer: Kuat Drive Yards
+  max_atmosphering_speed: "800"
+  model: EF76 Nebulon-B escort frigate
+  name: EF76 Nebulon-B escort frigate
+  passenger_capacity: 75
+  edges: {}
+- cargo_capacity: -1
+  class: Star Cruiser
+  consumables: 2 years
+  cost_in_credits: 104000000
+  crew: "5400"
+  hyperdrive_rating: "1.0"
+  length: 1200.0
+  manufacturer: Mon Calamari shipyards
+  max_atmosphering_speed: n/a
+  model: MC80 Liberty type Star Cruiser
+  name: Calamari Cruiser
+  passenger_capacity: 1200
+  edges: {}
+- cargo_capacity: 40
+  class: Starfighter
+  consumables: 1 week
+  cost_in_credits: 175000
+  crew: "1"
+  hyperdrive_rating: "1.0"
+  length: 9.6
+  manufacturer: Alliance Underground Engineering, Incom Corporation
+  max_atmosphering_speed: "1300"
+  model: RZ-1 A-wing Interceptor
+  name: A-wing
+  edges: {}
+- cargo_capacity: 45
+  class: Assault Starfighter
+  consumables: 1 week
+  cost_in_credits: 220000
+  crew: "1"
+  hyperdrive_rating: "2.0"
+  length: 16.9
+  manufacturer: Slayn & Korpil
+  max_atmosphering_speed: "950"
+  model: A/SF-01 B-wing starfighter
+  name: B-wing
+  edges: {}
+- cargo_capacity: -1
+  class: Space cruiser
+  consumables: unknown
+  cost_in_credits: -1
+  crew: "9"
+  hyperdrive_rating: "2.0"
+  length: 115.0
+  manufacturer: Corellian Engineering Corporation
+  max_atmosphering_speed: "900"
+  model: Consular-class cruiser
+  name: Republic Cruiser
+  passenger_capacity: 16
+  edges: {}
+- cargo_capacity: 4000000000
+  class: Droid control ship
+  consumables: 500 days
+  cost_in_credits: -1
+  crew: "175"
+  hyperdrive_rating: "2.0"
+  length: 3170.0
+  manufacturer: Hoersch-Kessel Drive, Inc.
+  max_atmosphering_speed: n/a
+  model: Lucrehulk-class Droid Control Ship
+  name: Droid control ship
+  passenger_capacity: 139000
+  edges: {}
+- cargo_capacity: 65
+  class: Starfighter
+  consumables: 7 days
+  cost_in_credits: 200000
+  crew: "1"
+  hyperdrive_rating: "1.0"
+  length: 11.0
+  manufacturer: Theed Palace Space Vessel Engineering Corps
+  max_atmosphering_speed: "1100"
+  model: N-1 starfighter
+  name: Naboo fighter
+  edges: {}
+- cargo_capacity: -1
+  class: yacht
+  consumables: unknown
+  cost_in_credits: -1
+  crew: "8"
+  hyperdrive_rating: "1.8"
+  length: 76.0
+  manufacturer: Theed Palace Space Vessel Engineering Corps, Nubia Star Drives
+  max_atmosphering_speed: "920"
+  model: J-type 327 Nubian royal starship
+  name: Naboo Royal Starship
+  passenger_capacity: -1
+  edges: {}
+- cargo_capacity: 2500000
+  class: Space Transport
+  consumables: 30 days
+  cost_in_credits: 55000000
+  crew: "1"
+  hyperdrive_rating: "1.5"
+  length: 26.5
+  manufacturer: Republic Sienar Systems
+  max_atmosphering_speed: "1180"
+  model: Star Courier
+  name: Scimitar
+  passenger_capacity: 6
+  edges: {}
+- cargo_capacity: -1
+  class: Diplomatic barge
+  consumables: 1 year
+  cost_in_credits: 2000000
+  crew: "5"
+  hyperdrive_rating: "0.7"
+  length: 39.0
+  manufacturer: Theed Palace Space Vessel Engineering Corps, Nubia Star Drives
+  max_atmosphering_speed: "2000"
+  model: J-type diplomatic barge
+  name: J-type diplomatic barge
+  passenger_capacity: 10
+  edges: {}
+- cargo_capacity: -1
+  class: freighter
+  consumables: unknown
+  cost_in_credits: -1
+  crew: unknown
+  hyperdrive_rating: unknown
+  length: 390.0
+  manufacturer: Botajef Shipyards
+  max_atmosphering_speed: unknown
+  model: Botajef AA-9 Freighter-Liner
+  name: AA-9 Coruscant freighter
+  passenger_capacity: 30000
+  edges: {}
+- cargo_capacity: 60
+  class: Starfighter
+  consumables: 7 days
+  cost_in_credits: 180000
+  crew: "1"
+  hyperdrive_rating: "1.0"
+  length: 8.0
+  manufacturer: Kuat Systems Engineering
+  max_atmosphering_speed: "1150"
+  model: Delta-7 Aethersprite-class interceptor
+  name: Jedi starfighter
+  edges: {}
+- cargo_capacity: -1
+  class: yacht
+  consumables: unknown
+  cost_in_credits: -1
+  crew: "4"
+  hyperdrive_rating: "0.9"
+  length: 47.9
+  manufacturer: Theed Palace Space Vessel Engineering Corps
+  max_atmosphering_speed: "8000"
+  model: H-type Nubian yacht
+  name: H-type Nubian yacht
+  passenger_capacity: -1
+  edges: {}
+- cargo_capacity: 11250000
+  class: assault ship
+  consumables: 2 years
+  cost_in_credits: -1
+  crew: "700"
+  hyperdrive_rating: "0.6"
+  length: 752.0
+  manufacturer: Rothana Heavy Engineering
+  max_atmosphering_speed: unknown
+  model: Acclamator I-class assault ship
+  name: Republic Assault ship
+  passenger_capacity: 16000
+  edges: {}
+- cargo_capacity: 240
+  class: yacht
+  consumables: 7 days
+  cost_in_credits: 35700
+  crew: "3"
+  hyperdrive_rating: "1.5"
+  length: 15.2
+  manufacturer: Huppla Pasa Tisc Shipwrights Collective
+  max_atmosphering_speed: "1600"
+  model: Punworcca 116-class interstellar sloop
+  name: Solar Sailer
+  passenger_capacity: 11
+  edges: {}
+- cargo_capacity: 50000000
+  class: capital ship
+  consumables: 4 years
+  cost_in_credits: 125000000
+  crew: "600"
+  hyperdrive_rating: "1.5"
+  length: 1088.0
+  manufacturer: Rendili StarDrive, Free Dac Volunteers Engineering corps.
+  max_atmosphering_speed: "1050"
+  model: Providence-class carrier/destroyer
+  name: Trade Federation cruiser
+  passenger_capacity: 48247
+  edges: {}
+- cargo_capacity: 50000
+  class: transport
+  consumables: 56 days
+  cost_in_credits: 1000000
+  crew: "5"
+  hyperdrive_rating: "1.0"
+  length: 18.5
+  manufacturer: Cygnus Spaceworks
+  max_atmosphering_speed: "2000"
+  model: Theta-class T-2c shuttle
+  name: Theta-class T-2c shuttle
+  passenger_capacity: 16
+  edges: {}
+- cargo_capacity: 20000000
+  class: star destroyer
+  consumables: 2 years
+  cost_in_credits: 59000000
+  crew: "7400"
+  hyperdrive_rating: "1.0"
+  length: 1137.0
+  manufacturer: Kuat Drive Yards, Allanteen Six shipyards
+  max_atmosphering_speed: "975"
+  model: Senator-class Star Destroyer
+  name: Republic attack cruiser
+  passenger_capacity: 2000
+  edges: {}
+- cargo_capacity: -1
+  class: yacht
+  consumables: unknown
+  cost_in_credits: -1
+  crew: "3"
+  hyperdrive_rating: "0.5"
+  length: 29.2
+  manufacturer: Theed Palace Space Vessel Engineering Corps/Nubia Star Drives, Incorporated
+  max_atmosphering_speed: "1050"
+  model: J-type star skiff
+  name: Naboo star skiff
+  passenger_capacity: 3
+  edges: {}
+- cargo_capacity: 60
+  class: starfighter
+  consumables: 2 days
+  cost_in_credits: 320000
+  crew: "1"
+  hyperdrive_rating: "1.0"
+  length: 5.47
+  manufacturer: Kuat Systems Engineering
+  max_atmosphering_speed: "1500"
+  model: Eta-2 Actis-class light interceptor
+  name: Jedi Interceptor
+  edges: {}
+- cargo_capacity: 110
+  class: starfighter
+  consumables: 5 days
+  cost_in_credits: 155000
+  crew: "3"
+  hyperdrive_rating: "1.0"
+  length: 14.5
+  manufacturer: Incom Corporation, Subpro Corporation
+  max_atmosphering_speed: "1000"
+  model: Aggressive Reconnaissance-170 starfighte
+  name: arc-170
+  edges: {}
+- cargo_capacity: 40000000
+  class: cruiser
+  consumables: 2 years
+  cost_in_credits: 57000000
+  crew: "200"
+  hyperdrive_rating: "1.0"
+  length: 825.0
+  manufacturer: Hoersch-Kessel Drive, Inc, Gwori Revolutionary Industries
+  max_atmosphering_speed: unknown
+  model: Munificent-class star frigate
+  name: Banking clan frigte
+  passenger_capacity: -1
+  edges: {}
+- cargo_capacity: 140
+  class: starfighter
+  consumables: 7 days
+  cost_in_credits: 168000
+  crew: "1"
+  hyperdrive_rating: "6"
+  length: 6.71
+  manufacturer: Feethan Ottraw Scalable Assemblies
+  max_atmosphering_speed: "1100"
+  model: Belbullab-22 starfighter
+  name: Belbullab-22 starfighter
+  edges: {}
+- cargo_capacity: 60
+  class: starfighter
+  consumables: 15 hours
+  cost_in_credits: 102500
+  crew: "1"
+  hyperdrive_rating: "1.0"
+  length: 7.9
+  manufacturer: Kuat Systems Engineering
+  max_atmosphering_speed: "1050"
+  model: Alpha-3 Nimbus-class V-wing starfighter
+  name: V-wing
+  edges: {}
+vehicle:
+- cargo_capacity: 50000
+  consumables: 2 months
+  cost_in_credits: 150000
+  crew: "46"
+  length: 36.8
+  manufacturer: Corellia Mining Corporation
+  max_atmosphering_speed: "30"
+  model: Digger Crawler
+  name: Sand Crawler
+  passenger_capacity: 30
+  edges: {}
+- cargo_capacity: 50
+  consumables: "0"
+  cost_in_credits: 14500
+  crew: "1"
+  length: 10.4
+  manufacturer: Incom Corporation
+  max_atmosphering_speed: "1200"
+  model: T-16 skyhopper
+  name: T-16 skyhopper
+  passenger_capacity: 1
+  edges: {}
+- cargo_capacity: 5
+  consumables: unknown
+  cost_in_credits: 10550
+  crew: "1"
+  length: 3.4
+  manufacturer: SoroSuub Corporation
+  max_atmosphering_speed: "250"
+  model: X-34 landspeeder
+  name: X-34 landspeeder
+  passenger_capacity: 1
+  edges: {}
+- cargo_capacity: 65
+  consumables: 2 days
+  cost_in_credits: -1
+  crew: "1"
+  length: 6.4
+  manufacturer: Sienar Fleet Systems
+  max_atmosphering_speed: "1200"
+  model: Twin Ion Engine/Ln Starfighter
+  name: TIE/LN starfighter
+  edges: {}
+- cargo_capacity: 10
+  consumables: none
+  cost_in_credits: -1
+  crew: "2"
+  length: 4.5
+  manufacturer: Incom corporation
+  max_atmosphering_speed: "650"
+  model: t-47 airspeeder
+  name: Snowspeeder
+  edges: {}
+- cargo_capacity: -1
+  consumables: 2 days
+  cost_in_credits: -1
+  crew: "1"
+  length: 7.8
+  manufacturer: Sienar Fleet Systems
+  max_atmosphering_speed: "850"
+  model: TIE/sa bomber
+  name: TIE bomber
+  edges: {}
+- cargo_capacity: 1000
+  consumables: unknown
+  cost_in_credits: -1
+  crew: "5"
+  length: 20.0
+  manufacturer: Kuat Drive Yards, Imperial Department of Military Research
+  max_atmosphering_speed: "60"
+  model: All Terrain Armored Transport
+  name: AT-AT
+  passenger_capacity: 40
+  edges: {}
+- cargo_capacity: 200
+  consumables: none
+  cost_in_credits: -1
+  crew: "2"
+  length: 2.0
+  manufacturer: Kuat Drive Yards, Imperial Department of Military Research
+  max_atmosphering_speed: "90"
+  model: All Terrain Scout Transport
+  name: AT-ST
+  edges: {}
+- cargo_capacity: 10
+  consumables: 1 day
+  cost_in_credits: 75000
+  crew: "2"
+  length: 7.0
+  manufacturer: Bespin Motors
+  max_atmosphering_speed: "1500"
+  model: Storm IV Twin-Pod
+  name: Storm IV Twin-Pod cloud car
+  edges: {}
+- cargo_capacity: 2000000
+  consumables: Live food tanks
+  cost_in_credits: 285000
+  crew: "26"
+  length: 30.0
+  manufacturer: Ubrikkian Industries Custom Vehicle Division
+  max_atmosphering_speed: "100"
+  model: Modified Luxury Sail Barge
+  name: Sail barge
+  passenger_capacity: 500
+  edges: {}
+- cargo_capacity: 135000
+  consumables: 1 day
+  cost_in_credits: 8000
+  crew: "5"
+  length: 9.5
+  manufacturer: Ubrikkian Industries
+  max_atmosphering_speed: "250"
+  model: Bantha-II
+  name: Bantha-II cargo skiff
+  passenger_capacity: 16
+  edges: {}
+- cargo_capacity: 75
+  consumables: 2 days
+  cost_in_credits: -1
+  crew: "1"
+  length: 9.6
+  manufacturer: Sienar Fleet Systems
+  max_atmosphering_speed: "1250"
+  model: Twin Ion Engine Interceptor
+  name: TIE/IN interceptor
+  edges: {}
+- cargo_capacity: 4
+  consumables: 1 day
+  cost_in_credits: 8000
+  crew: "1"
+  length: 3.0
+  manufacturer: Aratech Repulsor Company
+  max_atmosphering_speed: "360"
+  model: 74-Z speeder bike
+  name: Imperial Speeder Bike
+  passenger_capacity: 1
+  edges: {}
+- consumables: none
+  cost_in_credits: -1
+  crew: "0"
+  length: 3.5
+  manufacturer: Haor Chall Engineering, Baktoid Armor Workshop
+  max_atmosphering_speed: "1200"
+  model: Vulture-class droid starfighter
+  name: Vulture Droid
+  edges: {}
+- cargo_capacity: 12000
+  consumables: unknown
+  cost_in_credits: 138000
+  crew: "4"
+  length: 31.0
+  manufacturer: Baktoid Armor Workshop
+  max_atmosphering_speed: "35"
+  model: Multi-Troop Transport
+  name: Multi-Troop Transport
+  passenger_capacity: 112
+  edges: {}
+- cargo_capacity: -1
+  consumables: unknown
+  cost_in_credits: -1
+  crew: "4"
+  length: 9.75
+  manufacturer: Baktoid Armor Workshop
+  max_atmosphering_speed: "55"
+  model: Armoured Assault Tank
+  name: Armored Assault Tank
+  passenger_capacity: 6
+  edges: {}
+- cargo_capacity: -1
+  consumables: none
+  cost_in_credits: 2500
+  crew: "1"
+  length: 2.0
+  manufacturer: Baktoid Armor Workshop
+  max_atmosphering_speed: "400"
+  model: Single Trooper Aerial Platform
+  name: Single Trooper Aerial Platform
+  edges: {}
+- cargo_capacity: 1800000
+  consumables: 1 day
+  cost_in_credits: 200000
+  crew: "140"
+  length: 210.0
+  manufacturer: Haor Chall Engineering
+  max_atmosphering_speed: "587"
+  model: C-9979 landing craft
+  name: C-9979 landing craft
+  passenger_capacity: 284
+  edges: {}
+- cargo_capacity: 1600
+  consumables: unknown
+  cost_in_credits: -1
+  crew: "1"
+  length: 15.0
+  manufacturer: Otoh Gunga Bongameken Cooperative
+  max_atmosphering_speed: "85"
+  model: Tribubble bongo
+  name: Tribubble bongo
+  passenger_capacity: 2
+  edges: {}
+- cargo_capacity: 2
+  consumables: unknown
+  cost_in_credits: 4000
+  crew: "1"
+  length: 1.5
+  manufacturer: Razalon
+  max_atmosphering_speed: "180"
+  model: FC-20 speeder bike
+  name: Sith speeder
+  edges: {}
+- cargo_capacity: 200
+  consumables: none
+  cost_in_credits: 5750
+  crew: "1"
+  length: 3.68
+  manufacturer: Mobquet Swoops and Speeders
+  max_atmosphering_speed: "350"
+  model: Zephyr-G swoop bike
+  name: Zephyr-G swoop bike
+  passenger_capacity: 1
+  edges: {}
+- cargo_capacity: 80
+  consumables: unknown
+  cost_in_credits: -1
+  crew: "1"
+  length: 6.6
+  manufacturer: Desler Gizh Outworld Mobility Corporation
+  max_atmosphering_speed: "800"
+  model: Koro-2 Exodrive airspeeder
+  name: Koro-2 Exodrive airspeeder
+  passenger_capacity: 1
+  edges: {}
+- cargo_capacity: -1
+  consumables: unknown
+  cost_in_credits: -1
+  crew: "1"
+  length: 6.23
+  manufacturer: Narglatch AirTech prefabricated kit
+  max_atmosphering_speed: "720"
+  model: XJ-6 airspeeder
+  name: XJ-6 airspeeder
+  passenger_capacity: 1
+  edges: {}
+- cargo_capacity: 170
+  consumables: unknown
+  cost_in_credits: -1
+  crew: "6"
+  length: 17.4
+  manufacturer: Rothana Heavy Engineering
+  max_atmosphering_speed: "620"
+  model: Low Altitude Assault Transport/infrantry
+  name: LAAT/i
+  passenger_capacity: 30
+  edges: {}
+- cargo_capacity: 40000
+  consumables: unknown
+  cost_in_credits: -1
+  crew: "1"
+  length: 28.82
+  manufacturer: Rothana Heavy Engineering
+  max_atmosphering_speed: "620"
+  model: Low Altitude Assault Transport/carrier
+  name: LAAT/c
+  edges: {}
+- cargo_capacity: 10000
+  consumables: 21 days
+  cost_in_credits: -1
+  crew: "6"
+  length: 13.2
+  manufacturer: Rothana Heavy Engineering, Kuat Drive Yards
+  max_atmosphering_speed: "60"
+  model: All Terrain Tactical Enforcer
+  name: AT-TE
+  passenger_capacity: 36
+  edges: {}
+- cargo_capacity: 500
+  consumables: 7 days
+  cost_in_credits: -1
+  crew: "25"
+  length: 140.0
+  manufacturer: Rothana Heavy Engineering
+  max_atmosphering_speed: "35"
+  model: Self-Propelled Heavy Artillery
+  name: SPHA
+  passenger_capacity: 30
+  edges: {}
+- cargo_capacity: -1
+  consumables: unknown
+  cost_in_credits: 8000
+  crew: "1"
+  length: 2.0
+  manufacturer: Huppla Pasa Tisc Shipwrights Collective
+  max_atmosphering_speed: "634"
+  model: Flitknot speeder
+  name: Flitknot speeder
+  edges: {}
+- cargo_capacity: 1000
+  consumables: 7 days
+  cost_in_credits: -1
+  crew: "2"
+  length: 20.0
+  manufacturer: Haor Chall Engineering
+  max_atmosphering_speed: "880"
+  model: Sheathipede-class transport shuttle
+  name: Neimoidian shuttle
+  passenger_capacity: 6
+  edges: {}
+- cargo_capacity: -1
+  consumables: unknown
+  cost_in_credits: -1
+  crew: "1"
+  length: 9.8
+  manufacturer: Huppla Pasa Tisc Shipwrights Collective
+  max_atmosphering_speed: "20000"
+  model: Nantex-class territorial defense
+  name: Geonosian starfighter
+  edges: {}
+- cargo_capacity: 10
+  consumables: none
+  cost_in_credits: 15000
+  crew: "1"
+  length: 3.5
+  manufacturer: Z-Gomot Ternbuell Guppat Corporation
+  max_atmosphering_speed: "330"
+  model: Tsmeu-6 personal wheel bike
+  name: Tsmeu-6 personal wheel bike
+  passenger_capacity: 1
+  edges: {}
+- cargo_capacity: -1
+  consumables: unknown
+  cost_in_credits: -1
+  crew: "2"
+  manufacturer: unknown
+  max_atmosphering_speed: unknown
+  model: Fire suppression speeder
+  name: Emergency Firespeeder
+  passenger_capacity: -1
+  edges: {}
+- consumables: none
+  cost_in_credits: 20000
+  crew: "1"
+  length: 5.4
+  manufacturer: Colla Designs, Phlac-Arphocc Automata Industries
+  max_atmosphering_speed: "1180"
+  model: tri-fighter
+  name: Droid tri-fighter
+  edges: {}
+- cargo_capacity: 50
+  consumables: 3 days
+  cost_in_credits: 12125
+  crew: "2"
+  length: 15.1
+  manufacturer: Appazanna Engineering Works
+  max_atmosphering_speed: "420"
+  model: Oevvaor jet catamaran
+  name: Oevvaor jet catamaran
+  passenger_capacity: 2
+  edges: {}
+- cargo_capacity: 20
+  consumables: none
+  cost_in_credits: 14750
+  crew: "2"
+  length: 7.0
+  manufacturer: Appazanna Engineering Works
+  max_atmosphering_speed: "310"
+  model: Raddaugh Gnasp fluttercraft
+  name: Raddaugh Gnasp fluttercraft
+  edges: {}
+- cargo_capacity: 30000
+  consumables: 20 days
+  cost_in_credits: 350000
+  crew: "20"
+  length: 49.4
+  manufacturer: Kuat Drive Yards
+  max_atmosphering_speed: "160"
+  model: HAVw A6 Juggernaut
+  name: Clone turbo tank
+  passenger_capacity: 300
+  edges: {}
+- cargo_capacity: -1
+  consumables: none
+  cost_in_credits: 49000
+  crew: "0"
+  length: 10.96
+  manufacturer: Techno Union
+  max_atmosphering_speed: "100"
+  model: NR-N99 Persuader-class droid enforcer
+  name: Corporate Alliance tank droid
+  passenger_capacity: 4
+  edges: {}
+- consumables: none
+  cost_in_credits: 60000
+  crew: "0"
+  length: 12.3
+  manufacturer: Baktoid Fleet Ordnance, Haor Chall Engineering
+  max_atmosphering_speed: "820"
+  model: HMP droid gunship
+  name: Droid gunship
+  edges: {}
+- cargo_capacity: 20
+  consumables: 1 day
+  cost_in_credits: 40000
+  crew: "1"
+  length: 3.2
+  manufacturer: Kuat Drive Yards
+  max_atmosphering_speed: "90"
+  model: All Terrain Recon Transport
+  name: AT-RT
+  edges: {}
