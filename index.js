@@ -40,12 +40,16 @@ const ffi = Library(resolve(__dirname, `../${pf}/lib${pf}.so`), {
   create: [uint64, [ref.refType(InigoConfig)]],
   process_request: [
     uint64,
-    [uint64, pointer, int, ref.refType(pointer), ref.refType(int)],
+    [uint64, pointer, int, pointer, int, ref.refType(pointer), ref.refType(int)],
   ],
   process_response: [
     _void_,
     [uint64, uint64, pointer, int, ref.refType(pointer), ref.refType(int)],
   ],
+  ingest_query_data: [
+    _void_,
+    [uint64, uint64],
+  ]
   // TODO: add 'update_schema'
   // dispose
 });
@@ -86,6 +90,8 @@ class Query {
 
     this.#handle = ffi.process_request(
       this.#instance,
+      null,
+      0,
       input,
       input.length,
       output_ptr,
@@ -118,6 +124,12 @@ class Query {
 
     return JSON.parse(output);
   }
+
+  ingest() {
+    if (this.#handle == 0) return;
+    ffi.ingest_query_data(this.#instance, this.#handle) // info: auto disposes of request handle
+    this.#handle = 0;
+  } 
 }
 
 export function InigoPlugin(config) {
@@ -128,19 +140,20 @@ export function InigoPlugin(config) {
       // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
       const query = instance.newQuery(requestContext.request.query);
       const result = query.processRequest();
+      requestContext.inigo = { result };
 
       // If we have some errors, get the mutated query
       if (result?.errors?.length > 0) {
         requestContext.request.query = result.query;
-        requestContext.inigo = { result };
       }
 
       return {
         async willSendResponse(respContext) {
-          if (respContext.response.data === undefined) {
+          if (respContext.inigo.result?.errors?.length > 0 && respContext.response.data === undefined) {
             respContext.response.data = respContext.inigo.result.data;
             respContext.response.errors = respContext.inigo.result.errors;
             respContext.response.extensions = respContext.inigo.result.extensions;
+            query.ingest();
             return
           }
 
