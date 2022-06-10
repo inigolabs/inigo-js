@@ -5,8 +5,8 @@
   "type": "module",
   "license": "MIT",
   "dependencies": {
+    "apollo-server": "^3.8.2",
     "apollo-server-core": "^3.8.2",
-    "apollo-server-fastify": "^3.8.2",
     "dotenv": "^16.0.1",
     "graphql": "^16.5.0",
     "inigo-linux-amd64": "^1.0.10",
