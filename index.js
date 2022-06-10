@@ -2,6 +2,7 @@ const { Library } = require("ffi-napi");
 const ref = require("ref-napi");
 const struct = require("ref-struct-di")(ref);
 const { resolve } = require("path");
+const { buildSchema, introspectionFromSchema } = require("graphql");
 
 const pointer = "pointer";
 const string = ref.types.CString;
@@ -16,7 +17,9 @@ const InigoConfig = struct({
   Service: string,
   Token: string,
   Schema: string,
+  Introspection: string,
 });
+
 exports.InigoConfig = InigoConfig;
 
 function getArch() {
@@ -55,6 +58,9 @@ class Inigo {
   #instance = 0;
 
   constructor(config) {
+    // Get introspection schema
+    config.Introspection = `{ "data": ${JSON.stringify(introspectionFromSchema(buildSchema(config.Schema)))} }`
+
     this.#instance = ffi.create(config.ref());
     if (this.#instance == 0) {
       throw "error, instance could not be created.";
@@ -146,10 +152,18 @@ function InigoPlugin(config) {
 
       return {
         async willSendResponse(respContext) {
+          // Handle introspection
+          if (respContext.inigo.result?.data?.__schema != undefined) {
+            respContext.response.data = respContext.inigo.result.data;
+            query.ingest();
+            return
+          }
+
+          // Handle errors with empty response data
           if (respContext.inigo.result?.errors?.length > 0 && respContext.response.data === undefined) {
             respContext.response.data = respContext.inigo.result.data;
-            respContext.response.errors = respContext.inigo.result.errors;
-            respContext.response.extensions = respContext.inigo.result.extensions;
+            respContext.response.errors = respContext.inigo.result?.errors;
+            respContext.response.extensions = respContext.inigo.result?.extensions;
             query.ingest();
             return
           }
@@ -161,8 +175,8 @@ function InigoPlugin(config) {
           const processed = query.processResponse(rawResponse);
 
           respContext.response.data = processed.data;
-          respContext.response.errors = processed.errors;
-          respContext.response.extensions = processed.extensions;
+          respContext.response.errors = processed?.errors;
+          respContext.response.extensions = processed?.extensions;
         },
       };
     },
