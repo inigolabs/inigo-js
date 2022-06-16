@@ -38,9 +38,14 @@ function getOS() {
 const pf = `inigo-${getOS()}-${getArch()}`;
 const ffi = Library(resolve(__dirname, `../${pf}/lib${pf}.so`), {
   create: [uint64, [ref.refType(InigoConfig)]],
-  process_request: [
-    uint64,
-    [uint64, pointer, int, pointer, int, ref.refType(pointer), ref.refType(int)],
+  process_request: [ 
+    uint64, // requestData handle
+    [ 
+      uint64, // request handle 
+      pointer, int, // header
+      pointer, int, // query
+      ref.refType(pointer), ref.refType(int) // result
+    ],
   ],
   process_response: [
     _void_,
@@ -49,9 +54,10 @@ const ffi = Library(resolve(__dirname, `../${pf}/lib${pf}.so`), {
   ingest_query_data: [
     _void_,
     [uint64, uint64],
-  ]
-  // TODO: add 'update_schema'
-  // dispose
+  ],
+  get_version: [ string, [] ],
+  dispose: [ _void_, [ uint64 ] ],
+  update_schema: [ bool, [ uint64, pointer, int ] ]
 });
 
 class Inigo {
@@ -71,10 +77,15 @@ class Inigo {
     return new Query(this.#instance, query);
   }
 
-  // updateSchema() {
-  //     // TOOD: implement
-  // }
+  updateSchema(schema) {
+      // TOOD: implement
+  }
 }
+
+function version() {
+  return JSON.parse(ffi.get_version());
+}
+exports.version = version;
 
 class Query {
   #instance = 0;
@@ -86,15 +97,18 @@ class Query {
     this.#query = query;
   }
 
-  processRequest() {
+  processRequest(auth) {
     const input = Buffer.from(this.#query);
     const output_ptr = ref.alloc(ref.refType(pointer));
     const output_len_ptr = ref.alloc(int);
 
+    const authObj = { jwt: auth };
+    const authBuf = Buffer.from(JSON.stringify(authObj));
+
     this.#handle = ffi.process_request(
       this.#instance,
-      null,
-      0,
+      authBuf,
+      authBuf.length,
       input,
       input.length,
       output_ptr,
@@ -142,7 +156,7 @@ function InigoPlugin(config) {
     async requestDidStart(requestContext) {
       // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
       const query = instance.newQuery(requestContext.request.query);
-      const result = query.processRequest();
+      const result = query.processRequest(requestContext.context?.auth);
       requestContext.inigo = { result };
 
       // If we have some errors, get the mutated query
