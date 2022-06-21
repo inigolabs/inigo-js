@@ -158,7 +158,7 @@ function InigoPlugin(config) {
       const query = instance.newQuery(requestContext.request.query);
 
       // Process auth creds
-      if (requestContext.context?.inigo.auth !== undefined && requestContext.context?.inigo.jwt === undefined) {
+      if (requestContext.context?.inigo?.auth !== undefined && requestContext.context?.inigo?.jwt === undefined) {
         requestContext.context.inigo.jwt = jwt.sign(requestContext.context.inigo.auth, null, { algorithm: "none" });
       }
 
