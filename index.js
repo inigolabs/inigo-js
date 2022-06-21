@@ -3,6 +3,7 @@ const ref = require("ref-napi");
 const struct = require("ref-struct-di")(ref);
 const { resolve } = require("path");
 const { buildSchema, introspectionFromSchema } = require("graphql");
+const jwt = require("jsonwebtoken");
 
 const pointer = "pointer";
 const string = ref.types.CString;
@@ -19,7 +20,6 @@ const InigoConfig = struct({
   Schema: string,
   Introspection: string,
 });
-
 exports.InigoConfig = InigoConfig;
 
 function getArch() {
@@ -156,7 +156,13 @@ function InigoPlugin(config) {
     async requestDidStart(requestContext) {
       // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
       const query = instance.newQuery(requestContext.request.query);
-      const result = query.processRequest(requestContext.context?.auth);
+
+      // Process auth creds
+      if (requestContext.context?.inigo.auth !== undefined && requestContext.context?.inigo.jwt === undefined) {
+        requestContext.context.inigo.jwt = jwt.sign(requestContext.context.inigo.auth, null, { algorithm: "none" });
+      }
+
+      const result = query.processRequest(requestContext.context?.inigo?.jwt);
       requestContext.inigo = { result };
 
       // If we have some errors, get the mutated query
