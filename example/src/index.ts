@@ -21,7 +21,7 @@ const typeDefs = readFileSync(resolve(__dirname, "..", "data", INIGO_SCHEMA_PATH
 const data = parse(readFileSync(resolve(__dirname, "..", "data", INIGO_DATA_PATH), "utf-8"));
 
 const inigoCfg = new InigoConfig({
-  Debug: true,
+  Debug: false,
   Token: INIGO_SERVICE_TOKEN,
   Schema: typeDefs
 });
