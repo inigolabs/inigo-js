@@ -152,54 +152,56 @@ class Query {
 function InigoPlugin(config) {
   const instance = new Inigo(config);
 
-  return {
-    async requestDidStart(requestContext) {
-      // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
+  return { async requestDidStart(requestContext) {
+      if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
+
+      // Create inigo query
       const query = instance.newQuery(requestContext.request.query);
 
-      // Process auth creds
+      // Create jwt from auth object
       if (requestContext.context?.inigo?.auth !== undefined && requestContext.context?.inigo?.jwt === undefined) {
         requestContext.context.inigo.jwt = jwt.sign(requestContext.context.inigo.auth, null, { algorithm: "none" });
       }
 
+      // Process request
       const result = query.processRequest(requestContext.context?.inigo?.jwt);
       requestContext.inigo = { result };
 
-      // If we have some errors, get the mutated query
+      // Create request context, for storing blocked status
+      if (requestContext.context.inigo === undefined) {
+        requestContext.context.inigo = { blocked: false };
+      }
+
+      // If request is blocked or is an introspection
+      if (result?.extensions?.inigo?.status == "BLOCKED" || result?.data?.__schema != undefined) {
+        requestContext.request = { http: {} };  // remove request from pipeline
+        requestContext.context.inigo.blocked = true; // set blocked state
+        return { willSendResponse(respContext) {
+            setResponse(respContext, result);
+            query.ingest();
+          }
+        }
+      }
+
+      // If request query has been mutated
       if (result?.errors?.length > 0) {
         requestContext.request.query = result.query;
       }
 
-      return {
-        async willSendResponse(respContext) {
-          // Handle introspection
-          if (respContext.inigo.result?.data?.__schema != undefined) {
-            respContext.response.data = respContext.inigo.result.data;
-            query.ingest();
-            return
-          }
-
-          // Handle errors with empty response data
-          if (respContext.inigo.result?.errors?.length > 0 && respContext.response.data === undefined) {
-            respContext.response.data = respContext.inigo.result.data;
-            respContext.response.errors = respContext.inigo.result?.errors;
-            respContext.response.extensions = respContext.inigo.result?.extensions;
-            query.ingest();
-            return
-          }
-
-          const rawResponse = JSON.stringify(
-            respContext.response,
-            (key, value) => (key == "http" ? undefined : value)
-          );
+      // Process Response
+      return { async willSendResponse(respContext) {
+          const rawResponse = JSON.stringify(respContext.response, (key, value) => (key == "http" ? undefined : value));
           const processed = query.processResponse(rawResponse);
-
-          respContext.response.data = processed.data;
-          respContext.response.errors = processed?.errors;
-          respContext.response.extensions = processed?.extensions;
+          setResponse(respContext, processed);
         },
       };
     },
   };
 }
 exports.InigoPlugin = InigoPlugin;
+
+function setResponse(respContext, processed) {
+  respContext.response.data = processed?.data;
+  respContext.response.errors = processed?.errors;
+  respContext.response.extensions = processed?.extensions;
+}
