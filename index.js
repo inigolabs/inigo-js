@@ -56,8 +56,9 @@ const ffi = Library(resolve(__dirname, `../${pf}/lib${pf}.so`), {
     [uint64, uint64],
   ],
   get_version: [ string, [] ],
-  dispose: [ _void_, [ uint64 ] ],
-  update_schema: [ bool, [ uint64, pointer, int ] ]
+  disposeHandle: [ _void_, [ uint64 ] ],
+  disposeMemory: [ _void_, [ pointer ] ],
+  update_schema: [ bool, [ uint64, string ] ]
 });
 
 class Inigo {
@@ -78,7 +79,7 @@ class Inigo {
   }
 
   updateSchema(schema) {
-      // TOOD: implement
+    // ref.allocCString
   }
 }
 
@@ -115,8 +116,10 @@ class Query {
       output_len_ptr
     );
     const output = ref.readPointer(output_ptr, 0, output_len_ptr.deref());
-
-    return JSON.parse(output);
+    const result = JSON.parse(output);
+    ffi.disposeMemory(output_ptr.deref())
+    
+    return result
   }
 
   processResponse(data) {
@@ -135,11 +138,13 @@ class Query {
       output_len_ptr
     );
     const output = ref.readPointer(output_ptr, 0, output_len_ptr.deref());
-
-    // TODO: dispose of handle
+    const result = JSON.parse(output);
+    
+    ffi.disposeMemory(output_ptr.deref())
+    ffi.disposeHandle(this.#handle)
     this.#handle = 0;
 
-    return JSON.parse(output);
+    return result
   }
 
   ingest() {
