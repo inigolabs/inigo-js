@@ -1,5 +1,5 @@
-const { Library } = require("ffi-napi");
-const ref = require("ref-napi");
+const { Library } = require("@adam_inigo/ffi-napi");
+const ref = require("@adam_inigo/ref-napi");
 const struct = require("ref-struct-di")(ref);
 const { resolve } = require("path");
 const { buildSchema, introspectionFromSchema } = require("graphql");
@@ -117,7 +117,7 @@ class Query {
     );
     const output = ref.readPointer(output_ptr, 0, output_len_ptr.deref());
     const result = JSON.parse(output);
-    // ffi.disposeMemory(output_ptr.deref())
+    ffi.disposeMemory(output_ptr.deref())
     
     return result
   }
@@ -140,7 +140,7 @@ class Query {
     const output = ref.readPointer(output_ptr, 0, output_len_ptr.deref());
     const result = JSON.parse(output);
     
-    // ffi.disposeMemory(output_ptr.deref())
+    ffi.disposeMemory(output_ptr.deref())
     ffi.disposeHandle(this.#handle)
     this.#handle = 0;
 
