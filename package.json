@@ -1,6 +1,6 @@
 {
   "name": "inigo.js",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,8 +11,7 @@
   "dependencies": {
     "@adam_inigo/ffi-napi": "^4.0.5",
     "@adam_inigo/ref-napi": "^4.0.1",
-    "ref-struct-di": "^1.1.1",
-    "jsonwebtoken": "^8.5.1"
+    "ref-struct-di": "^1.1.1"
   },
   "devDependencies": {
     "@types/ffi-napi": "^4.0.5",

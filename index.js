@@ -3,7 +3,6 @@ const ref = require("@adam_inigo/ref-napi");
 const struct = require("ref-struct-di")(ref);
 const { resolve } = require("path");
 const { buildSchema, introspectionFromSchema } = require("graphql");
-const jwt = require("jsonwebtoken");
 
 const pointer = "pointer";
 const string = ref.types.CString;
@@ -102,9 +101,7 @@ class Query {
     const input = Buffer.from(this.#query);
     const output_ptr = ref.alloc(ref.refType(pointer));
     const output_len_ptr = ref.alloc(int);
-
-    const authObj = { jwt: auth };
-    const authBuf = Buffer.from(JSON.stringify(authObj));
+    const authBuf = Buffer.from(auth);
 
     this.#handle = ffi.process_request(
       this.#instance,
@@ -162,14 +159,16 @@ function InigoPlugin(config) {
 
       // Create inigo query
       const query = instance.newQuery(requestContext.request.query);
-
-      // Create jwt from auth object
-      if (requestContext.context?.inigo?.auth !== undefined && requestContext.context?.inigo?.jwt === undefined) {
-        requestContext.context.inigo.jwt = jwt.sign(requestContext.context.inigo.auth, null, { algorithm: "none" });
+      
+      const auth = {};
+      if (requestContext.context?.inigo?.ctx !== undefined) {
+        auth.ctx = JSON.stringify(requestContext.context.inigo.ctx);
+      } else if (requestContext.context?.inigo?.jwt !== undefined) {
+        auth.jwt = requestContext.context.inigo.jwt;
       }
 
       // Process request
-      const result = query.processRequest(requestContext.context?.inigo?.jwt);
+      const result = query.processRequest(JSON.stringify(auth));
       requestContext.inigo = { result };
 
       // Create request context, for storing blocked status
