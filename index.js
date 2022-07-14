@@ -181,7 +181,7 @@ function InigoPlugin(config) {
 
       // If request is blocked or is an introspection
       if (result?.extensions?.inigo?.status == "BLOCKED" || result?.data?.__schema != undefined) {
-        requestContext.request = { http: {} };  // remove request from pipeline
+        requestContext.request = { http: requestContext.http };  // remove request from pipeline
         requestContext.context.inigo.blocked = true; // set blocked state
         return { willSendResponse(respContext) {
             setResponse(respContext, result);
