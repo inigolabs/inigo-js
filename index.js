@@ -163,13 +163,15 @@ function InigoPlugin(config) {
       // Create inigo query
       const query = instance.newQuery(requestContext.request.query);
 
+      let auth = requestContext.context?.inigo?.jwt;
+
       // Create jwt from auth object
-      if (requestContext.context?.inigo?.auth !== undefined && requestContext.context?.inigo?.jwt === undefined) {
-        requestContext.context.inigo.jwt = jwt.sign(requestContext.context.inigo.auth, null, { algorithm: "none" });
+      if (requestContext.context?.inigo?.ctx !== undefined) {
+        auth = jwt.sign(requestContext.context.inigo.ctx, null, { algorithm: "none" });
       }
 
       // Process request
-      const result = query.processRequest(requestContext.context?.inigo?.jwt);
+      const result = query.processRequest(auth);
       requestContext.inigo = { result };
 
       // Create request context, for storing blocked status
