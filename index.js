@@ -1,7 +1,7 @@
 const { Library } = require("@adam_inigo/ffi-napi");
 const ref = require("@adam_inigo/ref-napi");
 const struct = require("ref-struct-di")(ref);
-const { resolve } = require("path");
+const { resolve, format } = require("path");
 const { buildSchema, introspectionFromSchema } = require("graphql");
 const jwt = require("jsonwebtoken");
 
@@ -44,7 +44,8 @@ const ffi = Library(resolve(__dirname, `../${pf}/lib${pf}.so`), {
       uint64, // request handle 
       pointer, int, // header
       pointer, int, // query
-      ref.refType(pointer), ref.refType(int) // result
+      ref.refType(pointer), ref.refType(int), // result
+      ref.refType(pointer), ref.refType(int) // status
     ],
   ],
   process_response: [
@@ -103,6 +104,9 @@ class Query {
     const output_ptr = ref.alloc(ref.refType(pointer));
     const output_len_ptr = ref.alloc(int);
 
+    const status_ptr = ref.alloc(ref.refType(pointer));
+    const status_len_ptr = ref.alloc(int);
+
     const authObj = { jwt: auth };
     const authBuf = Buffer.from(JSON.stringify(authObj));
 
@@ -113,13 +117,28 @@ class Query {
       input,
       input.length,
       output_ptr,
-      output_len_ptr
+      output_len_ptr,
+      status_ptr,
+      status_len_ptr
     );
-    const output = ref.readPointer(output_ptr, 0, output_len_ptr.deref());
-    const result = JSON.parse(output);
+
+    let request = {};
+    let result = {};
+
+    if (output_len_ptr.deref() > 0) {
+      request = JSON.parse(ref.readPointer(output_ptr, 0, output_len_ptr.deref()));
+    }
+
+    if (status_len_ptr.deref() > 0) {
+      result = JSON.parse(ref.readPointer(status_ptr, 0, status_len_ptr.deref()));
+    }
+
+    console.log(JSON.stringify({ request, result }))
+
     ffi.disposeMemory(output_ptr.deref())
+    ffi.disposeMemory(status_ptr.deref())
     
-    return result
+    return { request, result };
   }
 
   processResponse(data) {
@@ -158,7 +177,7 @@ function InigoPlugin(config) {
   const instance = new Inigo(config);
 
   return { async requestDidStart(requestContext) {
-      if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
+      // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
 
       // Create inigo query
       const query = instance.newQuery(requestContext.request.query);
@@ -171,28 +190,39 @@ function InigoPlugin(config) {
       }
 
       // Process request
-      const result = query.processRequest(auth);
-      requestContext.inigo = { result };
+      const processed = query.processRequest(auth);
+      requestContext.inigo = { processed };
 
       // Create request context, for storing blocked status
       if (requestContext.context.inigo === undefined) {
         requestContext.context.inigo = { blocked: false };
       }
 
-      // If request is blocked or is an introspection
-      if (result?.extensions?.inigo?.status == "BLOCKED" || result?.data?.__schema != undefined) {
+      // is an introspection
+      if (processed?.request.data?.__schema != undefined) {
         requestContext.request = { http: requestContext.http };  // remove request from pipeline
         requestContext.context.inigo.blocked = true; // set blocked state
         return { willSendResponse(respContext) {
-            setResponse(respContext, result);
+            setResponse(respContext, processed.request );
+            query.ingest();
+          }
+        }
+      }
+
+      // If request is blocked
+      if (processed?.result.status == "BLOCKED") {
+        requestContext.request = { http: requestContext.http };  // remove request from pipeline
+        requestContext.context.inigo.blocked = true; // set blocked state
+        return { willSendResponse(respContext) {
+            setResponse(respContext, { data: null, errors: processed.result.errors });
             query.ingest();
           }
         }
       }
 
       // If request query has been mutated
-      if (result?.errors?.length > 0) {
-        requestContext.request.query = result.query;
+      if (processed?.result.errors?.length > 0) {
+        requestContext.request.query = processed.request.query;
       }
 
       // Process Response
