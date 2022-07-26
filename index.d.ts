@@ -7,7 +7,7 @@ export const InigoConfig: StructType<{
   Service: Type<string>;
   Token: Type<string>;
   Schema: Type<string>;
-  Introspection: Type<string>;
+  Storage: Type<string>;
 }>;
 
 export function InigoPlugin(config: ReturnType<typeof InigoConfig>): any;
