@@ -33,7 +33,7 @@ A working development environment is always preferred with a stable node.js and 
    ```
 2. Install your platform specific library, available libraries:
    ```sh
-   # inigo-alpine-amd64, inigo-win-amd64 inigo-darwin-amd64, inigo-darwin-arm64
+   # inigo-alpine-amd64, inigo-windows-amd64 inigo-darwin-amd64, inigo-darwin-arm64
    npm install inigo-linux-amd64 
    ```
 ### Configuration
