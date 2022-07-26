@@ -1,7 +1,7 @@
 const { Library } = require("@adam_inigo/ffi-napi");
 const ref = require("@adam_inigo/ref-napi");
 const struct = require("ref-struct-di")(ref);
-const { resolve, format } = require("path");
+const { resolve } = require("path");
 const { buildSchema, introspectionFromSchema } = require("graphql");
 const jwt = require("jsonwebtoken");
 
@@ -19,6 +19,7 @@ const InigoConfig = struct({
   Token: string,
   Schema: string,
   Introspection: string,
+  Storage: string
 });
 exports.InigoConfig = InigoConfig;
 
