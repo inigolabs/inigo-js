@@ -213,7 +213,7 @@ function InigoPlugin(config) {
         requestContext.request = { http: requestContext.http };  // remove request from pipeline
         requestContext.context.inigo.blocked = true; // set blocked state
         return { willSendResponse(respContext) {
-            setResponse(respContext, { data: null, errors: processed.result.errors });
+            setResponse(respContext, { data: null, errors: processed.result.errors, extensions: processed.result.extensions });
             query.ingest();
           }
         }
