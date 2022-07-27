@@ -1,4 +1,4 @@
-import type { Type } from "ref-napi";
+import type { Type } from "@adam_inigo/ref-napi";
 import type { StructType } from "ref-struct-di";
 
 export const InigoConfig: StructType<{
@@ -34,3 +34,5 @@ export interface InigoProcessedContext extends Record<string, any> {
     };
   }
 }
+
+export function version(): string;
