@@ -4,7 +4,7 @@
   <img src="./docs/js.svg">
 
   <p align="center">
-    An Apollo GraphQL Middleware
+    GraphQL Middleware
     <br />
     <!-- <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a> <br /> <br />  -->
     <a href="https://inigo.io">Homepage</a>
@@ -27,57 +27,84 @@ A working development environment is always preferred with a stable node.js and 
 
 ### Installation
 
-1. Install inigo.js middleware
+1. Install the `inigo.js` middleware package
    ```sh
    npm install inigo.js
    ```
-2. Install your platform specific library, available libraries:
-   ```sh
-   # inigo-alpine-amd64, inigo-windows-amd64 inigo-darwin-amd64, inigo-darwin-arm64
-   npm install inigo-linux-amd64 
-   ```
+2. Install your platform specific library:
+    
+    #### Available libraries:
+    ```
+    - inigo-linux-amd64
+    - inigo-linux-arm64
+    - inigo-alpine-amd64
+    - inigo-alpine-arm64
+    - inigo-darwin-amd64
+    - inigo-darwin-arm64
+    - inigo-windows-amd64
+    ```
+    For example, install `inigo-linux-amd64`
+    ```sh
+    npm install inigo-linux-amd64 
+    ```
+
 ### Configuration
-1. Import inigo.js modules
+1. Import `InigoPlugin` & `InigoConfig` from `inigo.js` module
     ```js
-    import { InigoPlugin, InigoConfig } from 'inigo.js'; // ES6
-    const { InigoPlugin, InigoConfig } = require('inigo.js'); // CommonJS
-    ```
-2. Create an inigo config object
-    ```js
-    const inigoCfg = new InigoConfig({
-        Token: "eyJhbGc..", // Input token generated using inigo cli or web panel
-        Schema: typeDefs // String based SDL format GraphQL Schema
-    });
+    import { InigoPlugin, InigoConfig } from 'inigo.js';
     ```
 
-    For runtime generated type definitions, [GraphQL.js](https://www.npmjs.com/package/graphql) utilities can be utilized for conversion:
+    - ### For predefined GraphQL schema definitions
+      - Create an inigo config object
+        ```js
+        const inigoCfg = new InigoConfig({
+            Token: "eyJhbGc..", // Input token generated using inigo cli or web panel
+            Schema: typeDefs // String based SDL format GraphQL Schema
+        });
+        ```
+
+    - ### For runtime-generated GraphQL schema definitions
+      [GraphQL.js](https://www.npmjs.com/package/graphql) utilities can be utilized for conversion.
+
+      1. Install the `graphql` package
+          ```sh
+          npm install graphql
+          ```
+
+      2. Import `printSchema` from `graphql` package
+          ```js
+          import { printSchema } from 'graphql';
+          ```
+      
+      3. Create an inigo config object
+          ```js
+          const inigoCfg = new InigoConfig({
+              Token: "eyJhbGc..", // Input token generated using inigo cli or web panel
+              Schema: printSchema(typeDefs) // Convert GraphQLSchema object to SDL format
+          });
+          ```
+
+3. Plug in the middleware by adding the following to `plugins` within `ApolloServer`
     ```js
-    import { printSchema } from 'graphql'; // ES6
-    const { printSchema } = require('graphql'); // CommonJS
+    InigoPlugin(inigoCfg)
     ```
 
-    ```js
-    const inigoCfg = new InigoConfig({
-        Token: "eyJhbGc..", // Input token generated using inigo cli or web panel
-        Schema: printSchema(typeDefs) // Convert GraphQLSchema object to SDL format
-    });
-    ```
-3. Plugging-in the middleware
+    Result:
     ```js
     const server = new ApolloServer({
         typeDefs,
         resolvers,
         introspection: true,
         plugins: [
-            InigoPlugin(inigoCfg), // <------
+            InigoPlugin(inigoCfg) // <---
         ]
     });
     ```
 
 4. Your final configuration should look like the following example
     ```js
-    const { ApolloServer } = require('apollo-server');
-    const { InigoPlugin, InigoConfig } = require('inigo.js'); // <---
+    import { ApolloServer } from 'apollo-server';
+    import { InigoPlugin, InigoConfig } from 'inigo.js'; // <---
 
     const typeDefs = `
         type Query {
@@ -101,7 +128,7 @@ A working development environment is always preferred with a stable node.js and 
         resolvers,
         introspection: true,
         plugins: [                      // <---
-            InigoPlugin(inigoCfg),      // <---
+            InigoPlugin(inigoCfg)       // <---
         ]                               // <---
     });
 
@@ -110,42 +137,74 @@ A working development environment is always preferred with a stable node.js and 
     });
     ```
 
-## Passing Authentication
-1. Configure and apply your `service.yml`
-```yaml
-kind: Service
-name: starwars
-spec:
-  path_user_id: ctx.user_name         # jwt.user_name
-  path_user_profile: ctx.user_profile # jwt.user_profile
-  path_user_role: ctx.user_roles      # jwt.user_roles
-```
+## Passing Authentication using JWT header
+  1. Configure and apply your `service.yml`
+  ```yaml
+  kind: Service
+  name: starwars
+  spec:
+    path_user_id: jwt.user_name
+    path_user_profile: jwt.user_profile
+    path_user_role: jwt.user_roles
+  ```
 
-2. Configure `ApolloServer` to pass in an `inigo` object within context containing either your jwt from headers or your data from context. 
-> Note: `jwt` is always prioritized when found with `ctx` or other.
-```js
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  introspection: true,
-  plugins: [
-    InigoPlugin(inigoCfg),
-  ],
-  context: async ({ req }) => {
-    return { 
-      inigo: {
-        // jwt: req.headers.authorization ?? "" // Enable for passing jwt from headers
-        ctx: {
-          // Important to have object names identical to what was referenced in the service.yml
-          user_name: "yoda", 
-          user_profile: "admin",
-          user_roles: [ "producer", "director", "actor", "viewer" ],
+  2. Configure `ApolloServer` to pass in an `inigo` object within context containing the `jwt` from the request headers. 
+  > Note: `jwt` is always prioritized when found with `ctx` or other.
+  ```js
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    introspection: true,
+    plugins: [
+      InigoPlugin(inigoCfg)
+    ],
+    context: async ({ req }) => {
+      return { 
+        inigo: {
+          jwt: req.headers.authorization ?? ""
         }
       }
     }
-  }
-);
-```
+  );
+  ```
+
+## Passing Authentication using Context
+
+  1. Configure and apply your `service.yml`
+  ```yaml
+  kind: Service
+  name: starwars
+  spec:
+    path_user_id: ctx.user_name
+    path_user_profile: ctx.user_profile
+    path_user_role: ctx.user_roles
+  ```
+
+  2. Configure `ApolloServer` to pass in an `inigo` object containing context.
+  > Note: `jwt` is always prioritized when found with `ctx` or other.
+  
+  > Note: It's important to have object names identical to what was referenced in the service.yml
+  ```js
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    introspection: true,
+    plugins: [
+      InigoPlugin(inigoCfg)
+    ],
+    context: async ({ req }) => {
+      return { 
+        inigo: {
+          ctx: {
+            user_name: "yoda", 
+            user_profile: "admin",
+            user_roles: [ "producer", "director", "actor", "viewer" ],
+          }
+        }
+      }
+    }
+  );
+  ```
 
 ## Logging blocked requests
 ```js
