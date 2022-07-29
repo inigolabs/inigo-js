@@ -2,7 +2,8 @@ githubRepoOwner: inigolabs
 githubRepoName: inigo-js
 githubHost: github.com
 requireChecks: false
-requireApproval: true
+requireApproval: false
 githubRemote: origin
 githubBranch: master
+remoteBranches: []
 mergeMethod: rebase
