@@ -20,8 +20,7 @@
 ### Prerequisites
 
 A working development environment is always preferred with a stable node.js and build essentials
-* having setup an inigo account and created a service token
-* having already worked with the inigo cli to apply configurations
+* having [setup](app.inigo.io) an inigo account and created a service token
 * nodejs & npm: https://nodejs.org
 * gcc (in case the ffi module is not prebuilt for your platform)
 
@@ -182,7 +181,7 @@ A working development environment is always preferred with a stable node.js and 
 
   2. Configure `ApolloServer` to pass in an `inigo` object containing context.
   > Note: `jwt` is always prioritized when found with `ctx` or other.
-  
+
   > Note: It's important to have object names identical to what was referenced in the service.yml
   ```js
   const server = new ApolloServer({
