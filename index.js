@@ -37,7 +37,17 @@ function getOS() {
 }
 
 const pf = `inigo-${getOS()}-${getArch()}`;
-const ffi = Library(resolve(__dirname, `../${pf}/lib${pf}.so`), {
+var ext = ".so" // Linux
+
+if (getOS() == "windows") {
+  ext = ".dll"
+}
+
+if (getOS() == "darwin") {
+  ext = ".dylib"
+}
+
+const ffi = Library(resolve(__dirname, `../${pf}/${pf}${ext}`), {
   create: [uint64, [ref.refType(InigoConfig)]],
   process_request: [ 
     uint64, // requestData handle
