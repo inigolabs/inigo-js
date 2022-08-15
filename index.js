@@ -19,7 +19,8 @@ const InigoConfig = struct({
   Token: string,
   Schema: string,
   Introspection: string,
-  Storage: string
+  Storage: string,
+  Bucket: string,
 });
 exports.InigoConfig = InigoConfig;
 

@@ -8,6 +8,7 @@ export const InigoConfig: StructType<{
   Token: Type<string>;
   Schema: Type<string>;
   Storage: Type<string>;
+  Bucket: Type<string>;
 }>;
 
 export function InigoPlugin(config: ReturnType<typeof InigoConfig>): any;
