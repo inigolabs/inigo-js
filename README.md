@@ -1,7 +1,7 @@
 <br />
 <div align="center">
-  <img src="./docs/inigo.svg">
-  <img src="./docs/js.svg">
+  <img src="https://raw.githubusercontent.com/inigolabs/inigo-js/master/docs/inigo.svg">
+  <img src="https://raw.githubusercontent.com/inigolabs/inigo-js/master/docs/js.svg">
 
   <p align="center">
     GraphQL Middleware
