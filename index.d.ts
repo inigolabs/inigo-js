@@ -1,16 +1,17 @@
-import type { Type } from "@adam_inigo/ref-napi";
-import type { StructType } from "ref-struct-di";
+declare class Config {
+  Debug?: boolean;
+  Ingest?: string;
+  Service?: string;
+  Token?: string;
+  Schema?: string;
+  Storage?: string;
+}
 
-export const InigoConfig: StructType<{
-  Debug: Type<boolean>;
-  Ingest: Type<string>;
-  Service: Type<string>;
-  Token: Type<string>;
-  Schema: Type<string>;
-  Storage: Type<string>;
-}>;
+export class InigoConfig extends Config {
+  constructor(cfg: Config);
+}
 
-export function InigoPlugin(config: ReturnType<typeof InigoConfig>): any;
+export function InigoPlugin(config: Config): any;
 
 interface InigoError {
   message: string;
