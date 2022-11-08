@@ -1,5 +1,5 @@
-const { Library } = require("@adam_inigo/ffi-napi");
-const ref = require("@adam_inigo/ref-napi");
+const { Library } = require("@inigolabs/ffi-napi");
+const ref = require("@inigolabs/ref-napi");
 const struct = require("ref-struct-di")(ref);
 const { resolve } = require("path");
 const { buildSchema, introspectionFromSchema } = require("graphql");
