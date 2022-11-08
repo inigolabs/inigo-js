@@ -70,7 +70,8 @@ const ffi = Library(resolve(__dirname, `../${pf}/${pf}${ext}`), {
   get_version: [ string, [] ],
   disposeHandle: [ _void_, [ uint64 ] ],
   disposeMemory: [ _void_, [ pointer ] ],
-  update_schema: [ bool, [ uint64, string ] ]
+  update_schema: [ bool, [ uint64, string ] ],
+  check_lasterror: [ string, [] ],
 });
 
 class Inigo {
@@ -81,8 +82,15 @@ class Inigo {
     config.Introspection = `{ "data": ${JSON.stringify(introspectionFromSchema(buildSchema(config.Schema)))} }`
 
     this.#instance = ffi.create(config.ref());
+    const err = ffi.check_lasterror();
+    if (err != "") {
+      console.log("inigo-js:", err);
+      process.exit()
+    }
+
     if (this.#instance == 0) {
-      throw "error, instance could not be created.";
+      console.log("inigo-js: error, instance could not be created.");
+      process.exit()
     }
   }
 
