@@ -36,8 +36,6 @@ A working development environment is always preferred with a stable node.js and 
     ```
     - inigo-linux-amd64
     - inigo-linux-arm64
-    - inigo-alpine-amd64
-    - inigo-alpine-arm64
     - inigo-darwin-amd64
     - inigo-darwin-arm64
     - inigo-windows-amd64
