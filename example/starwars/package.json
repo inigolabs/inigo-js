@@ -18,7 +18,7 @@
     "typescript": "^4.7.3"
   },
   "scripts": {
-    "build": "./node_modules/.bin/tsc",
-    "start": "node dist/index.js"
+    "build": "../node_modules/.bin/tsc",
+    "start": "node ../dist/index.js"
   }
 }

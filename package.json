@@ -12,10 +12,12 @@
   "author": "inigolabs",
   "license": "MIT",
   "dependencies": {
+    "@apollo/gateway": "^2.3.0",
     "@inigolabs/ffi-napi": "^4.0.7",
     "@inigolabs/ref-napi": "^4.0.4",
-    "ref-struct-di": "^1.1.1",
-    "jsonwebtoken": "^8.5.1"
+    "graphql-request": "^5.1.0",
+    "jsonwebtoken": "^8.5.1",
+    "ref-struct-di": "^1.1.1"
   },
   "homepage": "https://github.com/inigolabs/inigo-js",
   "repository": {

@@ -1,5 +1,5 @@
 import { IResolvers, ISchemaLevelResolver } from '@graphql-tools/utils';
-import { EdgesMaps } from './types.js';
+import { EdgesMaps } from './types';
 
 const convertKeysToCamelCase = (obj: any) => {
     return Object.fromEntries(Object.entries(obj).map(([key, value]) => {

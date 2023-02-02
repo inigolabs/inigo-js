@@ -1,0 +1,15 @@
+{
+  "name": "inigo-apollo-gateway-demo",
+  "main": "gateway.js",
+  "scripts": {
+    "start": "node gateway.js"
+  },
+  "dependencies": {
+    "@apollo/gateway": "latest",
+    "apollo-server": "latest",
+    "dotenv": "^16.0.3",
+    "graphql": "latest",
+    "graphql-request": "^5.1.0",
+    "inigo-darwin-amd64": "^0.19.1"
+  }
+}

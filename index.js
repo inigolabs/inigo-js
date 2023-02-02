@@ -4,6 +4,8 @@ const struct = require("ref-struct-di")(ref);
 const { resolve } = require("path");
 const { buildSchema, introspectionFromSchema } = require("graphql");
 const jwt = require("jsonwebtoken");
+const { RemoteGraphQLDataSource } = require("@apollo/gateway");
+const { gql, GraphQLClient } = require('graphql-request');
 
 const pointer = "pointer";
 const string = ref.types.CString;
@@ -19,7 +21,7 @@ const InigoConfig = struct({
   Token: string,
   Schema: string,
   Introspection: string,
-  Storage: string
+  EgressUrl: string,
 });
 exports.InigoConfig = InigoConfig;
 
@@ -78,8 +80,9 @@ class Inigo {
   #instance = 0;
 
   constructor(config) {
-    // Get introspection schema
-    config.Introspection = `{ "data": ${JSON.stringify(introspectionFromSchema(buildSchema(config.Schema)))} }`
+    if (config.Schema !== null) {
+      config.Introspection = `{ "data": ${JSON.stringify(introspectionFromSchema(buildSchema(config.Schema)))} }`
+    }
 
     this.#instance = ffi.create(config.ref());
     const err = ffi.check_lasterror();
@@ -252,10 +255,138 @@ function InigoPlugin(config) {
     },
   };
 }
-exports.InigoPlugin = InigoPlugin;
 
 function setResponse(respContext, processed) {
   respContext.response.data = processed?.data;
   respContext.response.errors = processed?.errors;
   respContext.response.extensions = processed?.extensions;
 }
+
+async function InigoApolloGatewayPlugin(config) {
+  let info = await fetchGatewayInfo(config.Token)
+  let subGraphSidecars = info.gatewayInfo.services.reduce((acc, i) => {
+    acc[i.name] = i
+    return acc
+  }, {})
+
+  return {
+    plugin: InigoPlugin(config),
+    info: subGraphSidecars,
+  }
+}
+class InigoRemoteDataSource extends RemoteGraphQLDataSource {
+  #instance = 0
+
+  constructor(info, {name, url}) {
+    super();
+    this.url = url
+    this.name = name
+
+    let config = new InigoConfig({
+      Token: info[name].token,
+      EgressUrl: info[name].url,
+    })
+
+    this.#instance = new Inigo(config);
+  }
+
+  // NOTE. overriding private method
+  async sendRequest(requestWithQuery, context) {
+    if (context?.inigo?.response !== undefined) {
+      return Promise.resolve(context.inigo.response);
+    }
+
+    return super.sendRequest(requestWithQuery, context)
+  }
+  willSendRequest(options) {
+    // if (options.request.operationName === "IntrospectionQuery") return null; // debug purposes
+
+    if (this.#instance === undefined) {
+      throw new Error("instance is not found")
+    }
+
+    let query = this.#instance.newQuery(options.request.query)
+
+    // expect Inigo ctx to be created by parent plugin instance
+    if (!options.context.inigo) {
+      throw new Error("sub-graph Inigo plugin requires parent Inigo plugin")
+    }
+
+    options.context.inigo.query = query
+
+    // Process request
+    const auth = ""
+    const processed = query.processRequest(auth);
+
+    // introspection request
+    if (processed?.request.data?.__schema !== undefined) {
+      options.context.inigo.blocked = true; // set blocked state
+      options.context.inigo.response = processed.request;
+
+      return
+    }
+
+    // request is blocked
+    if (processed?.result.status === "BLOCKED") {
+      options.context.inigo.blocked = true; // set blocked state
+      options.context.inigo.response = {
+        data: null,
+        errors: processed.result.errors,
+        extensions: processed.result.extensions
+      };
+
+      return
+    }
+
+    // request has been mutated
+    if (processed?.result.errors?.length > 0) {
+      options.request.query = processed.request.query;
+    }
+  }
+
+  // didReceiveResponse modifies the response and return it
+  didReceiveResponse({ response, request, context }) {
+    if (context.inigo.blocked) {
+      context.inigo.query.ingest();
+      return response;
+    }
+
+    delete response.http; // "http" part is attached by the RemoteGraphQLDataSource
+
+    response = context.inigo.query.processResponse(JSON.stringify(response));
+
+    context.inigo.query.ingest();
+    return response
+  }
+}
+
+async function fetchGatewayInfo(token) {
+  let url = process.env.INIGO_SERVICE_URL
+  if (url === "") {
+    url = "https://app.inigo.io/api/query" // default prod url
+  }
+
+  const graphQLClient = new GraphQLClient(url, {
+    headers: {
+      authorization: 'Bearer ' + token
+    },
+  });
+  const query = gql`
+	query GatewayInfo {
+		gatewayInfo {
+			services {
+				name
+				label
+				url
+				token
+			}
+		}
+	}
+  `;
+
+  return await graphQLClient.request(query);
+}
+
+exports.InigoPlugin = InigoPlugin;
+exports.InigoApolloGatewayPlugin = InigoApolloGatewayPlugin;
+exports.InigoRemoteDataSource = InigoRemoteDataSource;

@@ -5,7 +5,7 @@ import { resolve } from "path";
 import { parse } from "yaml";
 import { InigoPlugin, InigoConfig } from 'inigo.js';
 import * as url from "url";
-import resolvers from "./resolvers.js"
+import resolvers from "./resolvers"
 
 config();
 const { INIGO_SERVICE_TOKEN } = process.env;
