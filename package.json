@@ -15,7 +15,8 @@
     "@inigolabs/ffi-napi": "^4.0.7",
     "@inigolabs/ref-napi": "^4.0.4",
     "ref-struct-di": "^1.1.1",
-    "jsonwebtoken": "^8.5.1"
+    "jsonwebtoken": "^8.5.1",
+    "graphql": "^16.6.0"
   },
   "homepage": "https://github.com/inigolabs/inigo-js",
   "repository": {

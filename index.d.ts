@@ -11,7 +11,7 @@ export class InigoConfig extends Config {
   constructor(cfg: Config);
 }
 
-export function InigoPlugin(config: Config): any;
+export function InigoPlugin(config?: Config): any;
 
 interface InigoError {
   message: string;

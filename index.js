@@ -2,7 +2,7 @@ const { Library } = require("@inigolabs/ffi-napi");
 const ref = require("@inigolabs/ref-napi");
 const struct = require("ref-struct-di")(ref);
 const { resolve } = require("path");
-const { buildSchema, introspectionFromSchema } = require("graphql");
+const { buildSchema, introspectionFromSchema, printSchema } = require("graphql");
 const jwt = require("jsonwebtoken");
 
 const pointer = "pointer";
@@ -191,66 +191,105 @@ class Query {
 }
 
 function InigoPlugin(config) {
-  const instance = new Inigo(config);
+  if (!config) {
+    // if config is not provided, create new one with the token from env var
+    config = new InigoConfig({
+      Token: process.env.INIGO_SERVICE_TOKEN
+    })
+  }
 
-  return { async requestDidStart(requestContext) {
-      // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
+  let handlers = {}
 
-      // Create inigo query
-      const query = instance.newQuery(requestContext.request.query);
-
-      let auth = requestContext.context?.inigo?.jwt;
-
-      // Create jwt from auth object
-      if (requestContext.context?.inigo?.ctx !== undefined) {
-        auth = jwt.sign(requestContext.context.inigo.ctx, null, { algorithm: "none" });
-      }
-
-      // Process request
-      const processed = query.processRequest(auth);
-      requestContext.inigo = { processed };
-
-      // Create request context, for storing blocked status
-      if (requestContext.context.inigo === undefined) {
-        requestContext.context.inigo = { blocked: false };
-      }
-
-      // is an introspection
-      if (processed?.request.data?.__schema != undefined) {
-        requestContext.request = { http: requestContext.http };  // remove request from pipeline
-        requestContext.context.inigo.blocked = true; // set blocked state
-        return { willSendResponse(respContext) {
-            setResponse(respContext, processed.request );
-            query.ingest();
+  let instance;
+  if (config.Schema) {
+    instance = new Inigo(config);
+  } else {
+    // lazy init for Inigo plugin. When static schema is not provided
+    handlers.serverWillStart = async function({ apollo, schema, logger }) {
+      return {
+        schemaDidLoadOrUpdate({ apiSchema, coreSupergraphSdl }) {
+          if (instance) {
+            // just in case. Should not happen as this callback is attached only if schema is not there initially
+            return
           }
-        }
-      }
 
-      // If request is blocked
-      if (processed?.result.status == "BLOCKED") {
-        requestContext.request = { http: requestContext.http };  // remove request from pipeline
-        requestContext.context.inigo.blocked = true; // set blocked state
-        return { willSendResponse(respContext) {
-            setResponse(respContext, { data: null, errors: processed.result.errors, extensions: processed.result.extensions });
-            query.ingest();
+          if (!!coreSupergraphSdl) { // use-case: apollo-server with gateway
+            config.Schema = coreSupergraphSdl
+          } else { // use-case: apollo-server without gateway. api-schema suppose to always be present
+            config.Schema = printSchema(apiSchema)
           }
+
+          instance = new Inigo(config)
         }
-      }
-
-      // If request query has been mutated
-      if (processed?.result.errors?.length > 0) {
-        requestContext.request.query = processed.request.query;
-      }
-
-      // Process Response
-      return { async willSendResponse(respContext) {
-          const rawResponse = JSON.stringify(respContext.response, (key, value) => (key == "http" ? undefined : value));
-          const processed = query.processResponse(rawResponse);
-          setResponse(respContext, processed);
-        },
       };
-    },
-  };
+    }
+  }
+
+
+  handlers.requestDidStart = async function(requestContext) {
+    // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
+    if (!instance) {
+      console.warn("no inigo plugin instance")
+      return
+    }
+
+    // Create inigo query
+    const query = instance.newQuery(requestContext.request.query);
+
+    let auth = requestContext.context?.inigo?.jwt;
+
+    // Create jwt from auth object
+    if (requestContext.context?.inigo?.ctx !== undefined) {
+      auth = jwt.sign(requestContext.context.inigo.ctx, null, { algorithm: "none" });
+    }
+
+    // Process request
+    const processed = query.processRequest(auth);
+    requestContext.inigo = { processed };
+
+    // Create request context, for storing blocked status
+    if (requestContext.context.inigo === undefined) {
+      requestContext.context.inigo = { blocked: false };
+    }
+
+    // is an introspection
+    if (processed?.request.data?.__schema != undefined) {
+      requestContext.request = { http: requestContext.http };  // remove request from pipeline
+      requestContext.context.inigo.blocked = true; // set blocked state
+      return { willSendResponse(respContext) {
+          setResponse(respContext, processed.request );
+          query.ingest();
+        }
+      }
+    }
+
+    // If request is blocked
+    if (processed?.result.status == "BLOCKED") {
+      requestContext.request = { http: requestContext.http };  // remove request from pipeline
+      requestContext.context.inigo.blocked = true; // set blocked state
+      return { willSendResponse(respContext) {
+          setResponse(respContext, { data: null, errors: processed.result.errors, extensions: processed.result.extensions });
+          query.ingest();
+        }
+      }
+    }
+
+    // If request query has been mutated
+    if (processed?.result.errors?.length > 0) {
+      requestContext.request.query = processed.request.query;
+    }
+
+    // Process Response
+    return {
+      async willSendResponse(respContext) {
+        const rawResponse = JSON.stringify(respContext.response, (key, value) => (key == "http" ? undefined : value));
+        const processed = query.processResponse(rawResponse);
+        setResponse(respContext, processed);
+      },
+    };
+  }
+
+  return handlers;
 }
 exports.InigoPlugin = InigoPlugin;
 
