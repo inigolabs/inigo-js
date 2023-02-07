@@ -191,6 +191,11 @@ class Query {
 }
 
 function InigoPlugin(config) {
+  if (process.env.INIGO_ENABLE === "false") {
+    // return empty handlers. It's mandatory to return the value from here.
+    return {}
+  }
+
   if (!config) {
     // if config is not provided, create new one with the token from env var
     config = new InigoConfig({
