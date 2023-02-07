@@ -9,8 +9,9 @@
     "apollo-server-core": "^3.8.2",
     "dotenv": "^16.0.1",
     "graphql": "^16.5.0",
-    "inigo-linux-amd64": "^1.0.33",
-    "inigo.js": "^1.0.30",
+    "inigo-linux-amd64": "^0.19.1",
+    "inigo-darwin-amd64": "^0.19.1",
+    "inigo.js": "^0.19.1",
     "yaml": "^2.1.1"
   },
   "devDependencies": {
