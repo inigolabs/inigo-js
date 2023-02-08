@@ -47,7 +47,7 @@ A working development environment is always preferred with a stable node.js and 
     ```
 
 ### Usage
-The simplest setup looks like the example below.
+The simplest setup is as the following example:
 
 ```js
 import { ApolloServer } from 'apollo-server';
@@ -256,8 +256,8 @@ function LogInigoBlockedRequests() { // <---
 }
 ```
 
-## Docker Image Limitation
-Alpine-based docker images are not supported, since Alpine project uses `musl` as the implementation for the C standard library.
+## Limitations
+- Alpine support is currently unavailable.
 
 ## Contributing
 
