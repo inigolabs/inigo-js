@@ -39,11 +39,35 @@ A working development environment is always preferred with a stable node.js and 
     - inigo-darwin-amd64
     - inigo-darwin-arm64
     - inigo-windows-amd64
+    - inigo-windows-arm64
     ```
     For example, install `inigo-linux-amd64`
     ```sh
     npm install inigo-linux-amd64 
     ```
+
+### Usage
+The simplest setup looks like the example below.
+
+```js
+import { ApolloServer } from 'apollo-server';
+import { InigoPlugin } from 'inigo.js';
+
+// ...
+
+const server = new ApolloServer({
+   // ...
+   plugins: [
+      InigoPlugin()
+   ]
+   // ...
+});
+```
+Start your app with `INIGO_SERVICE_TOKEN` passed as an environment variable.
+GraphQL schema will be fetched from the server on startup.
+```shell
+INIGO_SERVICE_TOKEN=<inigo-service-token> npm start
+```
 
 ### Configuration
 1. Import `InigoPlugin` & `InigoConfig` from `inigo.js` module
@@ -231,6 +255,9 @@ function LogInigoBlockedRequests() { // <---
   }
 }
 ```
+
+## Docker Image Limitation
+Alpine-based docker images are not supported, since Alpine project uses `musl` as the implementation for the C standard library.
 
 ## Contributing
 
