@@ -5,7 +5,6 @@ const { resolve } = require("path");
 const { buildSchema, introspectionFromSchema, printSchema } = require("graphql");
 const { GraphQLClient, gql } = require("graphql-request");
 const { RemoteGraphQLDataSource } = require("@apollo/gateway");
-const jwt = require("jsonwebtoken");
 const fs = require("fs");
 
 const pointer = "pointer";
@@ -63,7 +62,7 @@ const ffi = Library(libraryPath, {
     [ 
       uint64, // request handle 
       pointer, int, // header
-      pointer, int, // query
+      pointer, int, // request
       ref.refType(pointer), ref.refType(int), // result
       ref.refType(pointer), ref.refType(int) // status
     ],
@@ -71,10 +70,6 @@ const ffi = Library(libraryPath, {
   process_response: [
     _void_,
     [uint64, uint64, pointer, int, ref.refType(pointer), ref.refType(int)],
-  ],
-  ingest_query_data: [
-    _void_,
-    [uint64, uint64],
   ],
   get_version: [ string, [] ],
   disposeHandle: [ _void_, [ uint64 ] ],
@@ -105,8 +100,8 @@ class Inigo {
     }
   }
 
-  newQuery(query) {
-    return new Query(this.#instance, query);
+  newRequest(req) {
+    return new Request(this.#instance, req);
   }
 
   updateSchema(schema) {
@@ -119,54 +114,59 @@ function version() {
 }
 exports.version = version;
 
-class Query {
+class Request {
   #instance = 0;
   #handle = 0;
-  #query = "";
+  #request = {};
 
-  constructor(instance, query) {
+  constructor(instance, gReq) {
     this.#instance = instance;
-    this.#query = query;
+    this.#request = gReq;
   }
 
-  processRequest(auth) {
-    const input = Buffer.from(this.#query);
-    const output_ptr = ref.alloc(ref.refType(pointer));
-    const output_len_ptr = ref.alloc(int);
+  processRequest(headers) {
+    const input = Buffer.from(JSON.stringify(this.#request));
+    const resp_ptr = ref.alloc(ref.refType(pointer));
+    const resp_len_ptr = ref.alloc(int);
 
-    const status_ptr = ref.alloc(ref.refType(pointer));
-    const status_len_ptr = ref.alloc(int);
+    const req_ptr = ref.alloc(ref.refType(pointer));
+    const req_len_ptr = ref.alloc(int);
 
-    const authObj = { jwt: auth };
-    const authBuf = Buffer.from(JSON.stringify(authObj));
+    const newHeaders = {};
+
+    for (const [key, value] of headers.entries()) {
+      newHeaders[key] =  value.split(',').map((v) => v.trimStart());
+    }
+
+    const headersBuf = Buffer.from(JSON.stringify(newHeaders));
 
     this.#handle = ffi.process_request(
       this.#instance,
-      authBuf,
-      authBuf.length,
+      headersBuf,
+      headersBuf.length,
       input,
       input.length,
-      output_ptr,
-      output_len_ptr,
-      status_ptr,
-      status_len_ptr
+      resp_ptr,
+      resp_len_ptr,
+      req_ptr,
+      req_len_ptr
     );
 
-    let request = {};
-    let result = {};
+    let response = null;
+    let request = null;
 
-    if (output_len_ptr.deref() > 0) {
-      request = JSON.parse(ref.readPointer(output_ptr, 0, output_len_ptr.deref()));
+    if (resp_len_ptr.deref() > 0) {
+      response = JSON.parse(ref.readPointer(resp_ptr, 0, resp_len_ptr.deref()));
     }
 
-    if (status_len_ptr.deref() > 0) {
-      result = JSON.parse(ref.readPointer(status_ptr, 0, status_len_ptr.deref()));
+    if (req_len_ptr.deref() > 0) {
+      request = JSON.parse(ref.readPointer(req_ptr, 0, req_len_ptr.deref()));
     }
 
-    ffi.disposeMemory(output_ptr.deref())
-    ffi.disposeMemory(status_ptr.deref())
-    
-    return { request, result };
+    ffi.disposeMemory(resp_ptr.deref())
+    ffi.disposeMemory(req_ptr.deref())
+
+    return { response, request };
   }
 
   processResponse(data) {
@@ -193,21 +193,6 @@ class Query {
 
     return result
   }
-
-  ingest() {
-    if (this.#handle == 0) return;
-    ffi.ingest_query_data(this.#instance, this.#handle) // info: auto disposes of request handle
-    this.#handle = 0;
-  }
-}
-
-// returns the key of the ctx. Key is different between version v2 - v4
-function getCtxKey(requestContext) {
-  if (requestContext.context !== undefined) {
-    return "context"
-  }
-
-  return "contextValue"
 }
 
 function InigoPlugin(config) {
@@ -259,53 +244,28 @@ function InigoPlugin(config) {
       return
     }
 
-    // Create inigo query
-    const query = instance.newQuery(requestContext.request.query);
-
-    let ctxKey = getCtxKey(requestContext)
-    let auth = requestContext[ctxKey].inigo?.jwt;
-
-    // Create jwt from auth object
-    if (requestContext[ctxKey]?.inigo?.ctx !== undefined) {
-      auth = jwt.sign(requestContext[ctxKey].inigo.ctx, null, { algorithm: "none" });
-    }
+    // Create inigo request
+    const req = instance.newRequest({
+      query: requestContext.request.query,
+      operationName: requestContext.request.operationName,
+      variables: requestContext.request.variables,
+    });
 
     // Process request
-    const processed = query.processRequest(auth);
+    const processed = req.processRequest(requestContext.request.http.headers);
 
-    // Create request context, for storing blocked status
-    if (requestContext[ctxKey].inigo === undefined) {
-      requestContext[ctxKey].inigo = {
-        blocked: false,
-        auth: auth,
-      };
-    }
-
-    // is an introspection
-    if (processed?.request.data?.__schema != undefined) {
+    if (processed?.response != null) {
       requestContext.request = { http: requestContext.http };  // remove request from pipeline
-      requestContext[ctxKey].inigo.blocked = true; // set blocked state
       return { willSendResponse(respContext) {
-          setResponse(respContext, processed.request);
-          query.ingest();
+          setResponse(respContext, processed?.response);
         }
       }
     }
 
-    // If request is blocked
-    if (processed?.result.status == "BLOCKED") {
-      requestContext.request = { http: requestContext.http };  // remove request from pipeline
-      requestContext[ctxKey].inigo.blocked = true; // set blocked state
-      return { willSendResponse(respContext) {
-          setResponse(respContext, { data: null, errors: processed.result.errors, extensions: processed.result.extensions });
-          query.ingest();
-        }
-      }
-    }
-
-    // If request query has been mutated
-    if (processed?.result.errors?.length > 0) {
-      requestContext.request.query = processed.request.query;
+    if (processed?.request != null) {
+      requestContext.request.query = processed?.request.query;
+      requestContext.request.operationName = processed?.request.operationName;
+      requestContext.request.variables = processed?.request.variables;
     }
 
     // Process Response
@@ -319,7 +279,7 @@ function InigoPlugin(config) {
         }
 
         const rawResponse = JSON.stringify(resp, (key, value) => (key == "http" ? undefined : value));
-        const processed = query.processResponse(rawResponse);
+        const processed = req.processResponse(rawResponse);
         setResponse(respContext, processed);
       },
     };
@@ -419,44 +379,32 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
   }
 
   async processRequest(options) {
-    let query = this.#instance.newQuery(options.request.query)
+    let req = this.#instance.newRequest({
+      query: options.request.query,
+      operationName: options.request.operationName,
+      variables: options.request.variables,
+    });
 
-    // expect Inigo ctx to be created by parent plugin instance
-    if (options.context.inigo === undefined) {
-      options.context.inigo = {
-        blocked: false // init empty context if it does not exist
-      }
-    }
-
-    options.context.inigo.query = query
+    options.context.inigo.req = req
 
     // Process request
-    const auth = options.context.inigo.auth || "" // attempts to get auth, processed by parent inigo plugin
-    const processed = query.processRequest(auth);
+    const processed = req.processRequest(options.request.http.headers);
 
-    // introspection request
-    if (processed?.request?.data?.__schema !== undefined) {
-      options.context.inigo.blocked = true; // set blocked state
-      options.context.inigo.response = processed.request;
-
-      return
-    }
-
-    // request is blocked
-    if (processed?.result.status === "BLOCKED") {
+    if (processed?.response != null) {
       options.context.inigo.blocked = true; // set blocked state
       options.context.inigo.response = {
-        data: null,
-        errors: processed.result.errors,
-        extensions: processed.result.extensions
+        data: processed?.response.data,
+        errors: processed?.response.errors,
+        extensions: processed?.response.extensions,
       };
 
       return
     }
 
-    // request has been mutated
-    if (processed?.result.errors?.length > 0) {
-      options.request.query = processed.request.query;
+    if (processed?.request != null) {
+      options.request.query = processed?.request.query;
+      options.request.operationName = processed?.request.operationName;
+      options.request.variables = processed?.request.variables;
     }
   }
 
@@ -476,7 +424,6 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
   async didReceiveResponse({ response, request, context }) {
     if (this.#instance !== 0) {
       if (context.inigo.blocked) {
-        context.inigo.query.ingest();
         return response;
       }
 
@@ -488,8 +435,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 
       delete response.http; // "http" part is attached by the RemoteGraphQLDataSource, remove before processResponse fn execution
 
-      response = context.inigo.query.processResponse(JSON.stringify(response));
-      context.inigo.query.ingest();
+      response = context.inigo.req.processResponse(JSON.stringify(response));
 
       return response
     }
