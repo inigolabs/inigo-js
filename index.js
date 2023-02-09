@@ -79,7 +79,9 @@ class Inigo {
 
   constructor(config) {
     // Get introspection schema
-    config.Introspection = `{ "data": ${JSON.stringify(introspectionFromSchema(buildSchema(config.Schema)))} }`
+    if (config.Schema !== null) {
+      config.Introspection = `{ "data": ${JSON.stringify(introspectionFromSchema(buildSchema(config.Schema)))} }`
+    }
 
     this.#instance = ffi.create(config.ref());
     const err = ffi.check_lasterror();
@@ -187,7 +189,16 @@ class Query {
     if (this.#handle == 0) return;
     ffi.ingest_query_data(this.#instance, this.#handle) // info: auto disposes of request handle
     this.#handle = 0;
-  } 
+  }
+}
+
+// returns the key of the ctx. Key is different between version v2 - v4
+function getCtxKey(requestContext) {
+  if (requestContext.context !== undefined) {
+    return "context"
+  }
+
+  return "contextValue"
 }
 
 function InigoPlugin(config) {
@@ -241,28 +252,29 @@ function InigoPlugin(config) {
     // Create inigo query
     const query = instance.newQuery(requestContext.request.query);
 
-    let auth = requestContext.context?.inigo?.jwt;
+
+    let ctxKey = getCtxKey(requestContext)
+    let auth = requestContext[ctxKey].inigo?.jwt;
 
     // Create jwt from auth object
-    if (requestContext.context?.inigo?.ctx !== undefined) {
-      auth = jwt.sign(requestContext.context.inigo.ctx, null, { algorithm: "none" });
+    if (requestContext[ctxKey]?.inigo?.ctx !== undefined) {
+      auth = jwt.sign(requestContext[ctxKey].inigo.ctx, null, { algorithm: "none" });
     }
 
     // Process request
     const processed = query.processRequest(auth);
-    requestContext.inigo = { processed };
 
     // Create request context, for storing blocked status
-    if (requestContext.context.inigo === undefined) {
-      requestContext.context.inigo = { blocked: false };
+    if (requestContext[ctxKey].inigo === undefined) {
+      requestContext[ctxKey].inigo = { blocked: false };
     }
 
     // is an introspection
     if (processed?.request.data?.__schema != undefined) {
       requestContext.request = { http: requestContext.http };  // remove request from pipeline
-      requestContext.context.inigo.blocked = true; // set blocked state
+      requestContext[ctxKey].inigo.blocked = true; // set blocked state
       return { willSendResponse(respContext) {
-          setResponse(respContext, processed.request );
+          setResponse(respContext, processed.request);
           query.ingest();
         }
       }
@@ -271,7 +283,7 @@ function InigoPlugin(config) {
     // If request is blocked
     if (processed?.result.status == "BLOCKED") {
       requestContext.request = { http: requestContext.http };  // remove request from pipeline
-      requestContext.context.inigo.blocked = true; // set blocked state
+      requestContext[ctxKey].inigo.blocked = true; // set blocked state
       return { willSendResponse(respContext) {
           setResponse(respContext, { data: null, errors: processed.result.errors, extensions: processed.result.extensions });
           query.ingest();
@@ -287,7 +299,14 @@ function InigoPlugin(config) {
     // Process Response
     return {
       async willSendResponse(respContext) {
-        const rawResponse = JSON.stringify(respContext.response, (key, value) => (key == "http" ? undefined : value));
+        let resp;
+        if (respContext.response?.body?.singleResult !== undefined) {
+          resp = respContext.response.body.singleResult
+        } else {
+          resp = respContext.response
+        }
+
+        const rawResponse = JSON.stringify(resp, (key, value) => (key == "http" ? undefined : value));
         const processed = query.processResponse(rawResponse);
         setResponse(respContext, processed);
       },
@@ -299,6 +318,15 @@ function InigoPlugin(config) {
 exports.InigoPlugin = InigoPlugin;
 
 function setResponse(respContext, processed) {
+  // if 'singleResult' key is present - it's apollo-server v4, otherwise it v2/v3
+  if (respContext.response?.body?.singleResult !== undefined) {
+    respContext.response.body.singleResult.data = processed?.data
+    respContext.response.body.singleResult.errors = processed?.errors
+    respContext.response.body.singleResult.extensions = processed?.extensions
+
+    return
+  }
+
   respContext.response.data = processed?.data;
   respContext.response.errors = processed?.errors;
   respContext.response.extensions = processed?.extensions;
