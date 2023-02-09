@@ -4,7 +4,7 @@ declare class Config {
   Service?: string;
   Token?: string;
   Schema?: string;
-  Storage?: string;
+  EgressUrl?: string;
 }
 
 export class InigoConfig extends Config {
