@@ -3,6 +3,8 @@ const ref = require("@inigolabs/ref-napi");
 const struct = require("ref-struct-di")(ref);
 const { resolve } = require("path");
 const { buildSchema, introspectionFromSchema, printSchema } = require("graphql");
+const { GraphQLClient, gql } = require("graphql-request");
+const { RemoteGraphQLDataSource } = require("@apollo/gateway");
 const jwt = require("jsonwebtoken");
 
 const pointer = "pointer";
@@ -19,7 +21,7 @@ const InigoConfig = struct({
   Token: string,
   Schema: string,
   Introspection: string,
-  Storage: string
+  EgressUrl: string
 });
 exports.InigoConfig = InigoConfig;
 
@@ -216,7 +218,7 @@ function InigoPlugin(config) {
 
   let handlers = {}
 
-  let instance;
+  let instance = 0;
   if (config.Schema) {
     instance = new Inigo(config);
   } else {
@@ -229,7 +231,7 @@ function InigoPlugin(config) {
             return
           }
 
-          if (!!coreSupergraphSdl) { // use-case: apollo-server with gateway
+          if (coreSupergraphSdl !== undefined) { // use-case: apollo-server with gateway
             config.Schema = coreSupergraphSdl
           } else { // use-case: apollo-server without gateway. api-schema suppose to always be present
             config.Schema = printSchema(apiSchema)
@@ -244,14 +246,14 @@ function InigoPlugin(config) {
 
   handlers.requestDidStart = async function(requestContext) {
     // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
-    if (!instance) {
+
+    if (instance === 0) {
       console.warn("no inigo plugin instance")
       return
     }
 
     // Create inigo query
     const query = instance.newQuery(requestContext.request.query);
-
 
     let ctxKey = getCtxKey(requestContext)
     let auth = requestContext[ctxKey].inigo?.jwt;
@@ -266,7 +268,10 @@ function InigoPlugin(config) {
 
     // Create request context, for storing blocked status
     if (requestContext[ctxKey].inigo === undefined) {
-      requestContext[ctxKey].inigo = { blocked: false };
+      requestContext[ctxKey].inigo = {
+        blocked: false,
+        auth: auth,
+      };
     }
 
     // is an introspection
@@ -331,3 +336,161 @@ function setResponse(respContext, processed) {
   respContext.response.errors = processed?.errors;
   respContext.response.extensions = processed?.extensions;
 }
+
+async function InigoFetchGatewayInfo(token) {
+  token = token || process.env.INIGO_SERVICE_TOKEN
+  const url = process.env.INIGO_SERVICE_URL || "https://app.inigo.io/agent/query" // default url
+
+  const graphQLClient = new GraphQLClient(url, {
+    headers: {
+      authorization: 'Bearer ' + token
+    },
+  });
+
+  const query = gql`
+    query GatewayInfo {
+      gatewayInfo {
+        services {
+          name
+          label
+          url
+          token
+        }
+      }
+    }`;
+
+  let resp = await graphQLClient.request(query);
+
+  return resp?.gatewayInfo?.services?.reduce((acc, i) => {
+    acc[i.name] = i
+    return acc
+  }, {})
+}
+
+class InigoRemoteDataSource extends RemoteGraphQLDataSource {
+  #instance = 0
+
+  constructor(info, {name, url}) {
+    super();
+
+    if (!name) {
+      throw new Error("Name of the subgraph service should be provided to InigoRemoteDataSource.")
+    }
+
+    if (Object.getPrototypeOf(this).hasOwnProperty("willSendRequest") ||
+        Object.getPrototypeOf(this).hasOwnProperty("didReceiveResponse")) {
+
+      throw new Error(`
+      Methods 'willSendRequest' and 'didReceiveResponse' cannot be overwritten.
+      Use 'onBeforeSendRequest' and 'onAfterReceiveResponse' respectively.
+      `)
+    }
+
+    this.name = name
+    this.url = url
+
+    const details = info[name]
+    if (details === undefined) {
+      console.error(`inigo: service '${this.name}' is not specified for gateway.`)
+      return
+    }
+
+    let config = new InigoConfig({
+      Token: details.token,
+      EgressUrl: url
+    })
+
+    this.#instance = new Inigo(config);
+  }
+
+  // NOTE. overriding private method to prevent request sending if Inigo plugin generated the response.
+  async sendRequest(requestWithQuery, context) {
+    if (context?.inigo?.response !== undefined) {
+      return Promise.resolve(context.inigo.response);
+    }
+
+    return super.sendRequest(requestWithQuery, context)
+  }
+
+  async processRequest(options) {
+    let query = this.#instance.newQuery(options.request.query)
+
+    // expect Inigo ctx to be created by parent plugin instance
+    if (options.context.inigo === undefined) {
+      options.context.inigo = {
+        blocked: false // init empty context if it does not exist
+      }
+    }
+
+    options.context.inigo.query = query
+
+    // Process request
+    const auth = options.context.inigo.auth || "" // attempts to get auth, processed by parent inigo plugin
+    const processed = query.processRequest(auth);
+
+    // introspection request
+    if (processed?.request?.data?.__schema !== undefined) {
+      options.context.inigo.blocked = true; // set blocked state
+      options.context.inigo.response = processed.request;
+
+      return
+    }
+
+    // request is blocked
+    if (processed?.result.status === "BLOCKED") {
+      options.context.inigo.blocked = true; // set blocked state
+      options.context.inigo.response = {
+        data: null,
+        errors: processed.result.errors,
+        extensions: processed.result.extensions
+      };
+
+      return
+    }
+
+    // request has been mutated
+    if (processed?.result.errors?.length > 0) {
+      options.request.query = processed.request.query;
+    }
+  }
+
+  // implements the method from RemoteGraphQLDataSource class
+  async willSendRequest(options) {
+    if (this.#instance !== 0) {
+      await this.processRequest(options)
+    }
+
+    // execute customers callback if defined
+    if (this.onBeforeSendRequest) {
+      await this.onBeforeSendRequest(options);
+    }
+  }
+
+  // implements the method from RemoteGraphQLDataSource class
+  async didReceiveResponse({ response, request, context }) {
+    if (this.#instance !== 0) {
+      if (context.inigo.blocked) {
+        context.inigo.query.ingest();
+        return response;
+      }
+
+      // execute customers callback if defined, before processing response by Inigo
+      if (typeof this.onAfterReceiveResponse === 'function') {
+        const updatedResp = await this.onAfterReceiveResponse({ response, request, context })
+        response = updatedResp || response // use updatedResp if returned from
+      }
+
+      delete response.http; // "http" part is attached by the RemoteGraphQLDataSource, remove before processResponse fn execution
+
+      response = context.inigo.query.processResponse(JSON.stringify(response));
+      context.inigo.query.ingest();
+
+      return response
+    }
+
+    return response
+  }
+}
+
+exports.InigoFetchGatewayInfo = InigoFetchGatewayInfo;
+exports.InigoRemoteDataSource = InigoRemoteDataSource;
