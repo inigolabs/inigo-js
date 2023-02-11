@@ -1,3 +1,7 @@
+import { GraphQLDataSourceProcessOptions } from "@apollo/gateway/dist/datasources/types";
+import { GatewayGraphQLRequestContext, GatewayGraphQLResponse } from "@apollo/server-gateway-interface";
+import { ServiceEndpointDefinition } from "@apollo/gateway";
+
 declare class Config {
   Debug?: boolean;
   Ingest?: string;
@@ -37,3 +41,22 @@ export interface InigoProcessedContext extends Record<string, any> {
 }
 
 export function version(): string;
+
+interface InigoSubGraphInfo {
+  name: string
+  label: string
+  url: string
+  token: string
+}
+interface InigoGatewayInfo {
+  [key: string]: InigoSubGraphInfo;
+}
+
+export function InigoFetchGatewayInfo(token?: string): InigoGatewayInfo;
+
+export class InigoRemoteDataSource {
+  constructor(info: InigoGatewayInfo, server: ServiceEndpointDefinition);
+
+  onBeforeSendRequest?(options: GraphQLDataSourceProcessOptions): void | Promise<void>;
+  onAfterReceiveResponse?(requestContext: Required<Pick<GatewayGraphQLRequestContext, 'request' | 'response' | 'context'>>): GatewayGraphQLResponse | Promise<GatewayGraphQLResponse>;
+}
