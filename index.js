@@ -353,7 +353,6 @@ async function InigoFetchGatewayInfo(token) {
         services {
           name
           label
-          url
           token
         }
       }
