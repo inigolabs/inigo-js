@@ -6,6 +6,7 @@ const { buildSchema, introspectionFromSchema, printSchema } = require("graphql")
 const { GraphQLClient, gql } = require("graphql-request");
 const { RemoteGraphQLDataSource } = require("@apollo/gateway");
 const jwt = require("jsonwebtoken");
+const fs = require("fs");
 
 const pointer = "pointer";
 const string = ref.types.CString;
@@ -49,7 +50,13 @@ if (getOS() == "darwin") {
   ext = ".dylib"
 }
 
-const ffi = Library(resolve(__dirname, `../${pf}/${pf}${ext}`), {
+
+let libraryPath = resolve(__dirname, `../${pf}/${pf}${ext}`);
+if (fs.existsSync("libinigo.so")) {
+  libraryPath = "libinigo.so"
+}
+
+const ffi = Library(libraryPath, {
   create: [uint64, [ref.refType(InigoConfig)]],
   process_request: [ 
     uint64, // requestData handle
