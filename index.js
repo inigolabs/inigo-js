@@ -223,113 +223,151 @@ function InigoPlugin(config) {
     })
   }
 
-  let handlers = {}
-
+  // instance stored in a closure
   let instance = 0;
   if (config.Schema) {
     instance = new Inigo(config);
-  } else {
-    // lazy init for Inigo plugin. When static schema is not provided
-    handlers.serverWillStart = async function({ apollo, schema, logger }) {
+  }
+
+  return {
+    async serverWillStart({ apollo, schema, logger }) {
       return {
         schemaDidLoadOrUpdate({ apiSchema, coreSupergraphSdl }) {
-          if (instance) {
-            // just in case. Should not happen as this callback is attached only if schema is not there initially
+          if (instance === 0) { // instance can be not there if schema was not explicitly provided
+            if (coreSupergraphSdl !== undefined) {
+              // use-case: apollo-server with gateway
+              config.Schema = coreSupergraphSdl
+            } else {
+              // use-case: apollo-server without gateway
+              config.Schema = printSchema(apiSchema)
+            }
+
+            instance = new Inigo(config)
+          } else {
+            // TODO: handle schema update
+          }
+        }
+      };
+    },
+
+
+    // 'requestDidStart' callback is triggered when apollo receives request.
+    // It returns handlers for query lifecycle events.
+    async requestDidStart(requestContext) {
+      // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
+
+      if (instance === 0) {
+        console.warn("no inigo plugin instance")
+        return
+      }
+
+      // context key is derived once for every query. It's different based on the apollo server version
+      let ctxKey = getCtxKey(requestContext)
+
+      let query; // instance of the Inigo query
+      let response; // optional. If request was blocked by Inigo.
+
+      return {
+        // didResolveSource callback is invoked after server has determined the string representation of the query.
+        // Client can send query as a string or APQ (only query hash is sent). In this case, callback is executed after
+        // query string is retrieved from cache by the hash.
+        // Also, it's not triggered on the first APQ, when client sends query hash, but server cannot retrieve it.
+        didResolveSource(ctx) {
+
+          // create Inigo query and store in a closure
+          // ctx.source always holds the string representation of the query, in case of regular request or APQ
+          query = instance.newQuery(ctx.source);
+
+          let auth = requestContext[ctxKey].inigo?.jwt;
+
+          // Create jwt from auth object
+          if (requestContext[ctxKey]?.inigo?.ctx !== undefined) {
+            auth = jwt.sign(requestContext[ctxKey].inigo.ctx, null, { algorithm: "none" });
+          }
+
+          // Create request context, for storing blocked status
+          if (requestContext[ctxKey].inigo === undefined) {
+            requestContext[ctxKey].inigo = {
+              blocked: false,
+              auth: auth,
+            };
+          }
+
+          // process request
+          const processed = query.processRequest(auth);
+
+          // request is an introspection
+          if (processed?.request.data?.__schema !== undefined) {
+            requestContext.request = { http: requestContext.http };  // remove request from pipeline
+            requestContext[ctxKey].inigo.blocked = true; // set blocked state
+
+            // store response in a closure
+            response = processed.request;
+
             return
           }
 
-          if (coreSupergraphSdl !== undefined) { // use-case: apollo-server with gateway
-            config.Schema = coreSupergraphSdl
-          } else { // use-case: apollo-server without gateway. api-schema suppose to always be present
-            config.Schema = printSchema(apiSchema)
+          // request is blocked
+          if (processed?.result.status === "BLOCKED") {
+            requestContext.request = { http: requestContext.http };  // remove request from pipeline
+            requestContext[ctxKey].inigo.blocked = true; // set blocked state
+
+            // store response in a closure
+            response = {
+              data: null,
+              errors: processed.result.errors,
+              extensions: processed.result.extensions
+            };
+
+            return
           }
 
-          instance = new Inigo(config)
+          // request query has been mutated
+          if (processed?.result.errors?.length > 0) {
+            requestContext.request.query = processed.request.query;
+          }
+        },
+
+        // willSendResponse is triggered before response is sent out
+        async willSendResponse(respContext) {
+          // query was not processed by Inigo.
+          // Ex.: first APQ query (only query hash comes, server cannot resolve hash to string)
+          if (query === undefined) {
+            return
+          }
+
+          // response was provided by Inigo.
+          if (response !== undefined) {
+            setResponse(respContext, respContext[ctxKey].inigo.response);
+            query.ingest();
+
+            return
+          }
+
+          // response came from the server.
+          let resp;
+          if (respContext.response?.body?.singleResult !== undefined) {
+            resp = respContext.response.body.singleResult
+          } else {
+            resp = respContext.response
+          }
+
+          const rawResponse = JSON.stringify(resp, (key, value) => (key == "http" ? undefined : value));
+          const processed = query.processResponse(rawResponse);
+          setResponse(respContext, processed);
         }
       };
     }
   }
-
-
-  handlers.requestDidStart = async function(requestContext) {
-    // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
-
-    if (instance === 0) {
-      console.warn("no inigo plugin instance")
-      return
-    }
-
-    // Create inigo query
-    const query = instance.newQuery(requestContext.request.query);
-
-    let ctxKey = getCtxKey(requestContext)
-    let auth = requestContext[ctxKey].inigo?.jwt;
-
-    // Create jwt from auth object
-    if (requestContext[ctxKey]?.inigo?.ctx !== undefined) {
-      auth = jwt.sign(requestContext[ctxKey].inigo.ctx, null, { algorithm: "none" });
-    }
-
-    // Process request
-    const processed = query.processRequest(auth);
-
-    // Create request context, for storing blocked status
-    if (requestContext[ctxKey].inigo === undefined) {
-      requestContext[ctxKey].inigo = {
-        blocked: false,
-        auth: auth,
-      };
-    }
-
-    // is an introspection
-    if (processed?.request.data?.__schema != undefined) {
-      requestContext.request = { http: requestContext.http };  // remove request from pipeline
-      requestContext[ctxKey].inigo.blocked = true; // set blocked state
-      return { willSendResponse(respContext) {
-          setResponse(respContext, processed.request);
-          query.ingest();
-        }
-      }
-    }
-
-    // If request is blocked
-    if (processed?.result.status == "BLOCKED") {
-      requestContext.request = { http: requestContext.http };  // remove request from pipeline
-      requestContext[ctxKey].inigo.blocked = true; // set blocked state
-      return { willSendResponse(respContext) {
-          setResponse(respContext, { data: null, errors: processed.result.errors, extensions: processed.result.extensions });
-          query.ingest();
-        }
-      }
-    }
-
-    // If request query has been mutated
-    if (processed?.result.errors?.length > 0) {
-      requestContext.request.query = processed.request.query;
-    }
-
-    // Process Response
-    return {
-      async willSendResponse(respContext) {
-        let resp;
-        if (respContext.response?.body?.singleResult !== undefined) {
-          resp = respContext.response.body.singleResult
-        } else {
-          resp = respContext.response
-        }
-
-        const rawResponse = JSON.stringify(resp, (key, value) => (key == "http" ? undefined : value));
-        const processed = query.processResponse(rawResponse);
-        setResponse(respContext, processed);
-      },
-    };
-  }
-
-  return handlers;
 }
+
 exports.InigoPlugin = InigoPlugin;
 
 function setResponse(respContext, processed) {
+  if (processed === undefined) {
+    return
+  }
+
   // if 'singleResult' key is present - it's apollo-server v4, otherwise it v2/v3
   if (respContext.response?.body?.singleResult !== undefined) {
     respContext.response.body.singleResult.data = processed?.data
