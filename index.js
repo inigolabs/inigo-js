@@ -2,7 +2,7 @@ const { Library } = require("@inigolabs/ffi-napi");
 const ref = require("@inigolabs/ref-napi");
 const struct = require("ref-struct-di")(ref);
 const { resolve } = require("path");
-const { buildSchema, introspectionFromSchema, printSchema } = require("graphql");
+const { buildSchema, introspectionFromSchema, printSchema, parse, getOperationAST } = require("graphql");
 const { GraphQLClient, gql } = require("graphql-request");
 const { RemoteGraphQLDataSource } = require("@apollo/gateway");
 const jwt = require("jsonwebtoken");
@@ -268,12 +268,11 @@ function InigoPlugin(config) {
       let response; // optional. If request was blocked by Inigo.
 
       return {
-        // didResolveSource callback is invoked after server has determined the string representation of the query.
+        // didResolveOperation callback is invoked after server has determined the string representation of the query.
         // Client can send query as a string or APQ (only query hash is sent). In this case, callback is executed after
         // query string is retrieved from cache by the hash.
         // Also, it's not triggered on the first APQ, when client sends query hash, but server cannot retrieve it.
-        didResolveSource(ctx) {
-
+        didResolveOperation(ctx) {
           // create Inigo query and store in a closure
           // ctx.source always holds the string representation of the query, in case of regular request or APQ
           query = instance.newQuery(ctx.source);
@@ -316,7 +315,8 @@ function InigoPlugin(config) {
 
           // request query has been mutated
           if (processed?.result.errors?.length > 0) {
-            ctx.request.query = processed.request.query;
+            ctx.document = parse(processed.request.query);
+            ctx.operation = getOperationAST(ctx.document, ctx.operationName);
           }
         },
 
