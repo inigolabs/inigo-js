@@ -278,20 +278,14 @@ function InigoPlugin(config) {
           // ctx.source always holds the string representation of the query, in case of regular request or APQ
           query = instance.newQuery(ctx.source);
 
-          let auth = requestContext[ctxKey].inigo?.jwt;
-
-          // Create jwt from auth object
-          if (requestContext[ctxKey]?.inigo?.ctx !== undefined) {
-            auth = jwt.sign(requestContext[ctxKey].inigo.ctx, null, { algorithm: "none" });
-          }
-
           // Create request context, for storing blocked status
           if (requestContext[ctxKey].inigo === undefined) {
             requestContext[ctxKey].inigo = {
               blocked: false,
-              auth: auth,
             };
           }
+
+          const auth = getAuth(requestContext[ctxKey].inigo);
 
           // process request
           const processed = query.processRequest(auth);
@@ -361,6 +355,19 @@ function InigoPlugin(config) {
   }
 }
 
+function getAuth(inigo = {}) {
+  if (typeof inigo.jwt === "string" && inigo.jwt !== "") {
+    return inigo.jwt
+  }
+
+  // Create jwt from auth object
+  if (inigo.ctx !== undefined) {
+    return jwt.sign(inigo.ctx, null, { algorithm: "none" });
+  }
+
+  return ""
+}
+
 exports.InigoPlugin = InigoPlugin;
 
 function setResponse(respContext, processed) {
@@ -425,8 +432,11 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
         Object.getPrototypeOf(this).hasOwnProperty("didReceiveResponse")) {
 
       throw new Error(`
+      inigo.js : InigoRemoteDataSource
+      
       Methods 'willSendRequest' and 'didReceiveResponse' cannot be overwritten.
       Use 'onBeforeSendRequest' and 'onAfterReceiveResponse' respectively.
+      
       `)
     }
 
@@ -453,7 +463,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       return Promise.resolve(context.inigo.response);
     }
 
-    return super.sendRequest(requestWithQuery, context)
+    return await super.sendRequest(requestWithQuery, context)
   }
 
   async processRequest(options) {
@@ -466,10 +476,13 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       }
     }
 
-    options.context.inigo.query = query
+    // options.context.inigo.query = query
+    options.context.inigo[this.name] = query
 
-    // Process request
-    const auth = options.context.inigo.auth || "" // attempts to get auth, processed by parent inigo plugin
+
+    // parent inigo plugin cannot pass derived auth to subgraph plugin. Needs to be identified again
+    const auth = getAuth(options.context?.inigo);
+
     const processed = query.processRequest(auth);
 
     // introspection request
@@ -514,7 +527,8 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
   async didReceiveResponse({ response, request, context }) {
     if (this.#instance !== 0) {
       if (context.inigo.blocked) {
-        context.inigo.query.ingest();
+        context.inigo[this.name].ingest();
+
         return response;
       }
 
@@ -526,10 +540,10 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 
       delete response.http; // "http" part is attached by the RemoteGraphQLDataSource, remove before processResponse fn execution
 
-      response = context.inigo.query.processResponse(JSON.stringify(response));
-      context.inigo.query.ingest();
+      const inigo_response = context.inigo[this.name].processResponse(JSON.stringify(response));
+      delete context.inigo[this.name];
 
-      return response
+      return inigo_response
     }
 
     return response
