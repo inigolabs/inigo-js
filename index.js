@@ -279,21 +279,20 @@ function InigoPlugin(config) {
           query = instance.newQuery(ctx.source);
 
           // Create request context, for storing blocked status
-          if (requestContext[ctxKey].inigo === undefined) {
-            requestContext[ctxKey].inigo = {
+          if (ctx[ctxKey].inigo === undefined) {
+            ctx[ctxKey].inigo = {
               blocked: false,
             };
           }
 
-          const auth = getAuth(requestContext[ctxKey].inigo);
+          const auth = getAuth(ctx[ctxKey].inigo);
 
           // process request
           const processed = query.processRequest(auth);
 
           // request is an introspection
           if (processed?.request.data?.__schema !== undefined) {
-            requestContext.request = { http: requestContext.http };  // remove request from pipeline
-            requestContext[ctxKey].inigo.blocked = true; // set blocked state
+            ctx[ctxKey].inigo.blocked = true; // set blocked state
 
             // store response in a closure
             response = processed.request;
@@ -303,8 +302,7 @@ function InigoPlugin(config) {
 
           // request is blocked
           if (processed?.result.status === "BLOCKED") {
-            requestContext.request = { http: requestContext.http };  // remove request from pipeline
-            requestContext[ctxKey].inigo.blocked = true; // set blocked state
+            ctx[ctxKey].inigo.blocked = true; // set blocked state
 
             // store response in a closure
             response = {
@@ -318,8 +316,31 @@ function InigoPlugin(config) {
 
           // request query has been mutated
           if (processed?.result.errors?.length > 0) {
-            requestContext.request.query = processed.request.query;
+            ctx.request.query = processed.request.query;
           }
+        },
+
+        // responseForOperation executed right before request is propagated to the server
+        responseForOperation(opCtx) {
+          // response was provided by Inigo.
+          if (response === undefined) {
+            return
+          }
+
+          if (ctxKey === "context") { // v2,v3
+            return response
+          }
+
+          // return response in order request to NOT be propagated to the server
+          return {
+            http: {
+              status: 200
+            },
+            body: {
+              kind: 'single',
+              singleResult: response
+            }
+          };
         },
 
         // willSendResponse is triggered before response is sent out
@@ -332,7 +353,7 @@ function InigoPlugin(config) {
 
           // response was provided by Inigo.
           if (response !== undefined) {
-            setResponse(respContext, respContext[ctxKey].inigo.response);
+            // response already set in 'responseForOperation' callback.
             query.ingest();
 
             return

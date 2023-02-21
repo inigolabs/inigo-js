@@ -37,6 +37,17 @@ class CustomRemoteDataSource extends InigoRemoteDataSource {
   }
 }
 
+function logHeadersAndOpPlugin() {
+  return {
+    requestDidStart: () => ({
+      async didResolveOperation(requestContext) {
+        console.log("headers: ", requestContext.request.http.headers)
+        console.log("operation: ", requestContext.operation.operation)
+      },
+    }),
+  };
+}
+
 (async () => {
   // INIGO: execute InigoFetchGatewayInfo as early as possible and use the result as a param for your custom data source.
   const info = await InigoFetchGatewayInfo();
@@ -52,6 +63,7 @@ class CustomRemoteDataSource extends InigoRemoteDataSource {
     gateway: gateway,
     plugins: [
       InigoPlugin(), // INIGO: this line creates the parent Inigo plugin instance, required for Inigo sub-graph to work.
+      logHeadersAndOpPlugin(),
     ],
   });
 
