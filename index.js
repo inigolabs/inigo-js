@@ -5,7 +5,6 @@ const { resolve } = require("path");
 const { buildSchema, introspectionFromSchema, printSchema, parse, getOperationAST } = require("graphql");
 const { GraphQLClient, gql } = require("graphql-request");
 const { RemoteGraphQLDataSource } = require("@apollo/gateway");
-const jwt = require("jsonwebtoken");
 const fs = require("fs");
 
 const pointer = "pointer";
@@ -71,10 +70,6 @@ const ffi = Library(libraryPath, {
     _void_,
     [uint64, uint64, pointer, int, ref.refType(pointer), ref.refType(int)],
   ],
-  ingest_query_data: [
-    _void_,
-    [uint64, uint64],
-  ],
   get_version: [ string, [] ],
   disposeHandle: [ _void_, [ uint64 ] ],
   disposeMemory: [ _void_, [ pointer ] ],
@@ -120,51 +115,56 @@ function version() {
 class Query {
   #instance = 0;
   #handle = 0;
-  #query = "";
+  #query = {};
 
   constructor(instance, query) {
     this.#instance = instance;
     this.#query = query;
   }
 
-  processRequest(auth) {
-    const input = Buffer.from(this.#query);
-    const output_ptr = ref.alloc(ref.refType(pointer));
-    const output_len_ptr = ref.alloc(int);
+  processRequest(headers) {
+    const input = Buffer.from(JSON.stringify(this.#query));
+    const resp_ptr = ref.alloc(ref.refType(pointer));
+    const resp_len_ptr = ref.alloc(int);
 
-    const status_ptr = ref.alloc(ref.refType(pointer));
-    const status_len_ptr = ref.alloc(int);
+    const req_ptr = ref.alloc(ref.refType(pointer));
+    const req_len_ptr = ref.alloc(int);
 
-    const authObj = { jwt: auth };
-    const authBuf = Buffer.from(JSON.stringify(authObj));
+    const newHeaders = {};
+
+    for (const [key, value] of headers.entries()) {
+      newHeaders[key] =  value.split(',').map((v) => v.trimStart());
+    }
+
+    const headersBuf = Buffer.from(JSON.stringify(newHeaders));
 
     this.#handle = ffi.process_request(
-      this.#instance,
-      authBuf,
-      authBuf.length,
-      input,
-      input.length,
-      output_ptr,
-      output_len_ptr,
-      status_ptr,
-      status_len_ptr
+        this.#instance,
+        headersBuf,
+        headersBuf.length,
+        input,
+        input.length,
+        resp_ptr,
+        resp_len_ptr,
+        req_ptr,
+        req_len_ptr
     );
 
-    let request = {};
-    let result = {};
+    let response = null;
+    let request = null;
 
-    if (output_len_ptr.deref() > 0) {
-      request = JSON.parse(ref.readPointer(output_ptr, 0, output_len_ptr.deref()));
+    if (resp_len_ptr.deref() > 0) {
+      response = JSON.parse(ref.readPointer(resp_ptr, 0, resp_len_ptr.deref()));
     }
 
-    if (status_len_ptr.deref() > 0) {
-      result = JSON.parse(ref.readPointer(status_ptr, 0, status_len_ptr.deref()));
+    if (req_len_ptr.deref() > 0) {
+      request = JSON.parse(ref.readPointer(req_ptr, 0, req_len_ptr.deref()));
     }
 
-    ffi.disposeMemory(output_ptr.deref())
-    ffi.disposeMemory(status_ptr.deref())
-    
-    return { request, result };
+    ffi.disposeMemory(resp_ptr.deref())
+    ffi.disposeMemory(req_ptr.deref())
+
+    return { response, request };
   }
 
   processResponse(data) {
@@ -190,12 +190,6 @@ class Query {
     this.#handle = 0;
 
     return result
-  }
-
-  ingest() {
-    if (this.#handle == 0) return;
-    ffi.ingest_query_data(this.#instance, this.#handle) // info: auto disposes of request handle
-    this.#handle = 0;
   }
 }
 
@@ -273,46 +267,32 @@ function InigoPlugin(config) {
         didResolveOperation(ctx) {
           // create Inigo query and store in a closure
           // ctx.source always holds the string representation of the query, in case of regular request or APQ
-          query = instance.newQuery(ctx.source);
+          query = instance.newQuery({
+            query: ctx.source,
+            operationName: ctx.request.operationName,
+            variables: ctx.request.variables,
+          });
 
           // Create request context, for storing blocked status
           if (ctx[ctxKey].inigo === undefined) {
-            ctx[ctxKey].inigo = {
-              blocked: false,
-            };
+            ctx[ctxKey].inigo = { blocked: false };
           }
-
-          const auth = getAuth(ctx[ctxKey].inigo);
 
           // process request
-          const processed = query.processRequest(auth);
+          const processed = query.processRequest(ctx.request.http.headers);
 
-          // request is an introspection
-          if (processed?.request.data?.__schema !== undefined) {
-            ctx[ctxKey].inigo.blocked = true; // set blocked state
-
-            // store response in a closure
-            response = processed.request;
-
-            return
-          }
-
-          // request is blocked
-          if (processed?.result.status === "BLOCKED") {
-            ctx[ctxKey].inigo.blocked = true; // set blocked state
-
-            // store response in a closure
-            response = {
-              data: null,
-              errors: processed.result.errors,
-              extensions: processed.result.extensions
-            };
+          if (processed?.response != null) {
+            response = processed.response
 
             return
           }
 
           // request query has been mutated
-          if (processed?.result.errors?.length > 0) {
+          if (processed?.request != null) {
+            ctx.operationName = processed.request.operationName;
+            ctx.request.operationName = processed.request.operationName;
+            ctx.request.variables = processed.request.variables;
+
             ctx.document = parse(processed.request.query);
             ctx.operation = getOperationAST(ctx.document, ctx.operationName);
           }
@@ -351,9 +331,6 @@ function InigoPlugin(config) {
 
           // response was provided by Inigo.
           if (response !== undefined) {
-            // response already set in 'responseForOperation' callback.
-            query.ingest();
-
             return
           }
 
@@ -372,19 +349,6 @@ function InigoPlugin(config) {
       };
     }
   }
-}
-
-function getAuth(inigo = {}) {
-  if (typeof inigo.jwt === "string" && inigo.jwt !== "") {
-    return inigo.jwt
-  }
-
-  // Create jwt from auth object
-  if (inigo.ctx !== undefined) {
-    return jwt.sign(inigo.ctx, null, { algorithm: "none" });
-  }
-
-  return ""
 }
 
 function setResponse(respContext, processed) {
@@ -484,7 +448,11 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
   }
 
   async processRequest(options) {
-    let query = this.#instance.newQuery(options.request.query)
+    let query = this.#instance.newQuery({
+      query: options.request.query,
+      operationName: options.request.operationName,
+      variables: options.request.variables,
+    });
 
     // expect Inigo ctx to be created by parent plugin instance
     if (options.context.inigo === undefined) {
@@ -496,35 +464,25 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
     // options.context.inigo.query = query
     options.context.inigo[this.name] = query
 
-
-    // parent inigo plugin cannot pass derived auth to subgraph plugin. Needs to be identified again
-    const auth = getAuth(options.context?.inigo);
-
-    const processed = query.processRequest(auth);
+    const processed = query.processRequest(options.request.http.headers);
 
     // introspection request
-    if (processed?.request?.data?.__schema !== undefined) {
-      options.context.inigo.blocked = true; // set blocked state
-      options.context.inigo.response = processed.request;
-
-      return
-    }
-
-    // request is blocked
-    if (processed?.result.status === "BLOCKED") {
+    if (processed?.response != null) {
       options.context.inigo.blocked = true; // set blocked state
       options.context.inigo.response = {
-        data: null,
-        errors: processed.result.errors,
-        extensions: processed.result.extensions
+        data: processed?.response.data,
+        errors: processed?.response.errors,
+        extensions: processed?.response.extensions,
       };
 
       return
     }
 
     // request has been mutated
-    if (processed?.result.errors?.length > 0) {
-      options.request.query = processed.request.query;
+    if (processed?.request != null) {
+      options.request.query = processed?.request.query;
+      options.request.operationName = processed?.request.operationName;
+      options.request.variables = processed?.request.variables;
     }
   }
 
@@ -542,9 +500,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 
   // implements the method from RemoteGraphQLDataSource class
   async didReceiveResponse({ response, request, context }) {
-    if (context.inigo?.blocked && context.inigo[this.name] !== undefined) {
-      context.inigo[this.name].ingest();
-
+    if (context.inigo?.blocked) {
       return response;
     }
 
