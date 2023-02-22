@@ -507,7 +507,11 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
     // execute customers callback if defined.
     // should be executed before inigo. Ex.: in order to attach headers to request and so inigo can see them.
     if (typeof this.onBeforeSendRequest === 'function') {
-      await this.onBeforeSendRequest(options);
+      try {
+        await this.onBeforeSendRequest(options);
+      } catch (e) {
+        console.error(`${this.name}: onBeforeSendRequest callback error. Error: ${e}`)
+      }
     }
 
     // create instance asynchronously, to not block current request
@@ -546,8 +550,12 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 
     // execute customers callback if defined, before processing response by Inigo
     if (typeof this.onAfterReceiveResponse === 'function') {
-      const updatedResp = await this.onAfterReceiveResponse({ response, request, context });
-      response = updatedResp || response; // use updatedResp if returned
+      try {
+        const updatedResp = await this.onAfterReceiveResponse({ response, request, context });
+        response = updatedResp || response; // use updatedResp if returned
+      } catch (e) {
+        console.error(`${this.name}: onAfterReceiveResponse callback error. Error: ${e}`)
+      }
     }
 
     if (context.inigo === undefined || context.inigo[this.name] === undefined) {
