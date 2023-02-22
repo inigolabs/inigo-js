@@ -24,7 +24,6 @@ const InigoConfig = struct({
   Introspection: string,
   EgressUrl: string
 });
-exports.InigoConfig = InigoConfig;
 
 function getArch() {
   const arch = process.arch;
@@ -117,7 +116,6 @@ class Inigo {
 function version() {
   return JSON.parse(ffi.get_version());
 }
-exports.version = version;
 
 class Query {
   #instance = 0;
@@ -389,8 +387,6 @@ function getAuth(inigo = {}) {
   return ""
 }
 
-exports.InigoPlugin = InigoPlugin;
-
 function setResponse(respContext, processed) {
   if (processed === undefined) {
     return
@@ -546,30 +542,30 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 
   // implements the method from RemoteGraphQLDataSource class
   async didReceiveResponse({ response, request, context }) {
-    if (this.#instance !== 0) {
-      if (context.inigo.blocked) {
-        context.inigo[this.name].ingest();
+    if (context.inigo?.blocked && context.inigo[this.name] !== undefined) {
+      context.inigo[this.name].ingest();
 
-        return response;
-      }
-
-      // execute customers callback if defined, before processing response by Inigo
-      if (typeof this.onAfterReceiveResponse === 'function') {
-        const updatedResp = await this.onAfterReceiveResponse({ response, request, context })
-        response = updatedResp || response // use updatedResp if returned from
-      }
-
-      delete response.http; // "http" part is attached by the RemoteGraphQLDataSource, remove before processResponse fn execution
-
-      const inigo_response = context.inigo[this.name].processResponse(JSON.stringify(response));
-      delete context.inigo[this.name];
-
-      return inigo_response
+      return response;
     }
 
-    return response
+    // execute customers callback if defined, before processing response by Inigo
+    if (typeof this.onAfterReceiveResponse === 'function') {
+      const updatedResp = await this.onAfterReceiveResponse({ response, request, context });
+      response = updatedResp || response; // use updatedResp if returned
+    }
+
+    if (context.inigo[this.name] === undefined) {
+      return response;
+    }
+
+    // "http" part is attached by the RemoteGraphQLDataSource, remove before processResponse fn execution
+    const rawResponse = JSON.stringify(response, (key, value) => (key == "http" ? undefined : value));
+    return context.inigo[this.name].processResponse(rawResponse);
   }
 }
 
 exports.InigoFetchGatewayInfo = InigoFetchGatewayInfo;
 exports.InigoRemoteDataSource = InigoRemoteDataSource;
+exports.InigoConfig = InigoConfig;
+exports.InigoPlugin = InigoPlugin;
+exports.version = version;
