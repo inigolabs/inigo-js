@@ -21,7 +21,8 @@ const InigoConfig = struct({
   Token: string,
   Schema: string,
   Introspection: string,
-  EgressUrl: string
+  EgressUrl: string,
+  Gateway: uint64
 });
 
 function getArch() {
@@ -47,7 +48,6 @@ if (getOS() == "windows") {
 if (getOS() == "darwin") {
   ext = ".dylib"
 }
-
 
 let libraryPath = resolve(__dirname, `../${pf}/${pf}${ext}`);
 if (fs.existsSync("libinigo.so")) {
@@ -101,6 +101,10 @@ class Inigo {
 
   newQuery(query) {
     return new Query(this.#instance, query);
+  }
+
+  instance() {
+    return this.#instance;
   }
 
   updateSchema(schema) {
@@ -202,6 +206,8 @@ function getCtxKey(requestContext) {
   return "contextValue"
 }
 
+let rootInigoInstance = 0;
+
 function InigoPlugin(config) {
   if (process.env.INIGO_ENABLE === "false") {
     // return empty handlers. It's mandatory to return the value from here.
@@ -216,16 +222,19 @@ function InigoPlugin(config) {
   }
 
   // instance stored in a closure
-  let instance = 0;
   if (config.Schema) {
-    instance = new Inigo(config);
+    if (rootInigoInstance !== 0) {
+      throw new Error("Only one instance of InigoPlugin can be created.")
+    }
+
+    rootInigoInstance = new Inigo(config);
   }
 
   return {
     async serverWillStart({ apollo, schema, logger }) {
       return {
         schemaDidLoadOrUpdate({ apiSchema, coreSupergraphSdl }) {
-          if (instance === 0) { // instance can be not there if schema was not explicitly provided
+          if (rootInigoInstance === 0) { // instance can be not there if schema was not explicitly provided
             if (coreSupergraphSdl !== undefined) {
               // use-case: apollo-server with gateway
               config.Schema = coreSupergraphSdl
@@ -234,7 +243,7 @@ function InigoPlugin(config) {
               config.Schema = printSchema(apiSchema)
             }
 
-            instance = new Inigo(config)
+            rootInigoInstance = new Inigo(config)
           } else {
             // TODO: handle schema update
           }
@@ -248,7 +257,7 @@ function InigoPlugin(config) {
     async requestDidStart(requestContext) {
       // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
 
-      if (instance === 0) {
+      if (rootInigoInstance === 0) {
         console.warn("no inigo plugin instance")
         return
       }
@@ -267,7 +276,7 @@ function InigoPlugin(config) {
         didResolveOperation(ctx) {
           // create Inigo query and store in a closure
           // ctx.source always holds the string representation of the query, in case of regular request or APQ
-          query = instance.newQuery({
+          query = rootInigoInstance.newQuery({
             query: ctx.source,
             operationName: ctx.request.operationName,
             variables: ctx.request.variables,
@@ -401,8 +410,10 @@ async function InigoFetchGatewayInfo(token) {
 
 class InigoRemoteDataSource extends RemoteGraphQLDataSource {
   #instance = 0
+  #in_progress = false;
+  #token;
 
-  constructor(info, {name, url}) {
+  constructor(info = {}, {name, url}) {
     super();
 
     if (!name) {
@@ -430,12 +441,19 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       return
     }
 
-    let config = new InigoConfig({
-      Token: details.token,
-      EgressUrl: url
-    })
+    if (typeof details.token === "string" && details.token !== "") {
+      this.#token = details.token;
+    }
 
-    this.#instance = new Inigo(config);
+    if (rootInigoInstance !== 0 && this.#token !== undefined) {
+      let config = new InigoConfig({
+        Token: details.token,
+        EgressUrl: url,
+        Gateway: rootInigoInstance.instance(),
+      })
+
+      this.#instance = new Inigo(config);
+    }
   }
 
   // NOTE. overriding private method to prevent request sending if Inigo plugin generated the response.
@@ -486,13 +504,35 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 
   // implements the method from RemoteGraphQLDataSource class
   async willSendRequest(options) {
-    if (this.#instance !== 0) {
-      await this.processRequest(options)
+    // execute customers callback if defined.
+    // should be executed before inigo. Ex.: in order to attach headers to request and so inigo can see them.
+    if (typeof this.onBeforeSendRequest === 'function') {
+      await this.onBeforeSendRequest(options);
     }
 
-    // execute customers callback if defined
-    if (this.onBeforeSendRequest) {
-      await this.onBeforeSendRequest(options);
+    // create instance asynchronously, to not block current request
+    if (this.#instance === 0
+        && rootInigoInstance !== 0
+        && this.#token !== undefined
+        && !this.#in_progress) {
+
+        this.#in_progress = true;
+
+        Promise.resolve().then(() => {
+          let config = new InigoConfig({
+            Token: this.#token,
+            EgressUrl: this.url,
+            Gateway: rootInigoInstance.instance(),
+          })
+
+          this.#instance = new Inigo(config);
+
+          console.log(`inigo subgraph instance created on the flight: ${this.name}`)
+        })
+    }
+
+    if (this.#instance !== 0) {
+      await this.processRequest(options)
     }
   }
 
