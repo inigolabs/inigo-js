@@ -380,6 +380,10 @@ function setResponse(respContext, processed) {
 }
 
 async function InigoFetchGatewayInfo(token) {
+  if (process.env.INIGO_ENABLE === "false") {
+    return {}
+  }
+
   token = token || process.env.INIGO_SERVICE_TOKEN
   const url = process.env.INIGO_SERVICE_URL || "https://app.inigo.io/agent/query" // default url
 
