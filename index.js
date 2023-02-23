@@ -73,7 +73,7 @@ const ffi = Library(libraryPath, {
   get_version: [ string, [] ],
   disposeHandle: [ _void_, [ uint64 ] ],
   disposeMemory: [ _void_, [ pointer ] ],
-  update_schema: [ bool, [ uint64, string ] ],
+  update_schema: [ bool, [ uint64, string, int ] ],
   check_lasterror: [ string, [] ],
 });
 
@@ -108,7 +108,8 @@ class Inigo {
   }
 
   updateSchema(schema) {
-    // ref.allocCString
+    const buf = Buffer.from(schema)
+    ffi.update_schema(this.#instance, buf, buf.length)
   }
 }
 
@@ -221,31 +222,26 @@ function InigoPlugin(config) {
     })
   }
 
-  // instance stored in a closure
-  if (config.Schema) {
-    if (rootInigoInstance !== 0) {
-      throw new Error("Only one instance of InigoPlugin can be created.")
-    }
-
-    rootInigoInstance = new Inigo(config);
+  // rootInigoInstance is a singleton
+  if (rootInigoInstance !== 0) {
+    throw new Error("Only one instance of InigoPlugin can be created.")
   }
+
+  rootInigoInstance = new Inigo(config);
 
   return {
     async serverWillStart({ apollo, schema, logger }) {
       return {
         schemaDidLoadOrUpdate({ apiSchema, coreSupergraphSdl }) {
-          if (rootInigoInstance === 0) { // instance can be not there if schema was not explicitly provided
-            if (coreSupergraphSdl !== undefined) {
-              // use-case: apollo-server with gateway
-              config.Schema = coreSupergraphSdl
-            } else {
-              // use-case: apollo-server without gateway
-              config.Schema = printSchema(apiSchema)
-            }
-
-            rootInigoInstance = new Inigo(config)
+          if (coreSupergraphSdl !== undefined) {
+            // use-case: apollo-server with gateway
+            rootInigoInstance.updateSchema(coreSupergraphSdl)
           } else {
-            // TODO: handle schema update
+            if (config.Schema !== null) { // only if schema was not statically provided
+              // use-case: apollo-server without gateway
+              const schema_str = printSchema(apiSchema)
+              rootInigoInstance.updateSchema(schema_str)
+            }
           }
         }
       };
