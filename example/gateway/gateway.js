@@ -68,12 +68,7 @@ function logHeadersAndOpPlugin() {
   });
 
   const { url } = await startStandaloneServer(server, {
-    context: async ({ req }) => ({
-      req,
-      inigo: {
-        jwt: req.headers.authorization ?? "",
-      },
-    }),
+    context: async ({ req }) => ({ req }),
   });
 
   console.log(`🚀 Server ready at ${url}`);
