@@ -462,47 +462,41 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 
   // NOTE. overriding private method to prevent request sending if Inigo plugin generated the response.
   async sendRequest(request, context) {
-    if (context.inigo !== undefined
-        && context.inigo[this.name] !== undefined
-        && context.inigo[this.name]?.response !== undefined) { // request was provided by Inigo
+    if (request.inigo !== undefined && request.inigo.response !== undefined) { // request was provided by Inigo
 
-      return Promise.resolve(context.inigo[this.name].response);
+      return Promise.resolve(request.inigo.response);
     }
 
     return await super.sendRequest(request, context)
   }
 
-  async processRequest(options) {
+  async processRequest({ request, context }) {
     let query = this.#instance.newQuery({
-      query: options.request.query,
-      operationName: options.request.operationName,
-      variables: options.request.variables,
+      query: request.query,
+      operationName: request.operationName,
+      variables: request.variables,
     });
 
-    if (options.context.inigo === undefined) {
-      options.context.inigo = {}
+    if (request.inigo !== undefined) {
+      console.error(`inigo.js: inigo is present on request.`)
     }
 
-    options.context.inigo[this.name] = { query: query }
+    request.inigo = { query: query }
 
-    const processed = query.processRequest(options.request.http.headers);
+    const processed = query.processRequest(request.http.headers);
 
     // introspection request
     if (processed?.response != null) {
-      options.context.inigo[this.name].response = {
-        data: processed.response.data,
-        errors: processed.response.errors,
-        extensions: processed.response.extensions,
-      };
+      request.inigo.response = processed.response;
 
       return
     }
 
     // request has been mutated
     if (processed?.request != null) {
-      options.request.query = processed?.request.query;
-      options.request.operationName = processed?.request.operationName;
-      options.request.variables = processed?.request.variables;
+      request.query = processed.request.query;
+      request.operationName = processed.request.operationName;
+      request.variables = processed.request.variables;
     }
   }
 
@@ -546,9 +540,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 
   // implements the method from RemoteGraphQLDataSource class
   async didReceiveResponse({ response, request, context }) {
-    if (context.inigo !== undefined
-        && context.inigo[this.name] !== undefined
-        && context.inigo[this.name]?.response !== undefined) { // request was provided by Inigo
+    if (request.inigo !== undefined && request.inigo.response !== undefined) { // request was provided by Inigo
       return response;
     }
 
@@ -562,13 +554,16 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       }
     }
 
-    if (context.inigo === undefined || context.inigo[this.name] === undefined) {
+    if (request.inigo === undefined || request.inigo.query === undefined) {
       return response;
     }
 
     // "http" part is attached by the RemoteGraphQLDataSource, remove before processResponse fn execution
     const rawResponse = JSON.stringify(response, (key, value) => (key == "http" ? undefined : value));
-    return context.inigo[this.name].query.processResponse(rawResponse);
+    const inigo_resp = request.inigo.query.processResponse(rawResponse);
+    inigo_resp.http = response.http;
+
+    return inigo_resp;
   }
 }
 
