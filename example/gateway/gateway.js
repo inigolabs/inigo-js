@@ -19,6 +19,9 @@ const supergraphSdl = new IntrospectAndCompose({
 // INIGO: instead of 'willSendRequest' and 'didReceiveResponse' use callbacks 'onBeforeSendRequest' and 'onAfterReceiveResponse'.
 // INIGO: Signatures of callbacks are same.
 class CustomRemoteDataSource extends InigoRemoteDataSource {
+  // INIGO: set to true if you want Inigo subgraph instances to make SDL queries to subgraph services to get schema
+  inigo_sdl = true;
+
   async onBeforeSendRequest({ request, context }) {
     if (context.req && context.req.headers) {
       // pass all headers to subgraph
