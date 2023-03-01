@@ -229,24 +229,26 @@ function InigoPlugin(config) {
 
   rootInigoInstance = new Inigo(config);
 
-  return {
-    async serverWillStart({ apollo, schema, logger }) {
-      return {
-        schemaDidLoadOrUpdate({ apiSchema, coreSupergraphSdl }) {
-          if (coreSupergraphSdl !== undefined) {
-            // use-case: apollo-server with gateway
-            rootInigoInstance.updateSchema(coreSupergraphSdl)
-          } else {
-            if (config.Schema !== null) { // only if schema was not statically provided
-              // use-case: apollo-server without gateway
-              const schema_str = printSchema(apiSchema)
-              rootInigoInstance.updateSchema(schema_str)
-            }
+  const serverWillStart = async function({ apollo, schema, logger }) {
+    return {
+      schemaDidLoadOrUpdate({ apiSchema, coreSupergraphSdl }) {
+        if (coreSupergraphSdl !== undefined) {
+          // use-case: apollo-server with gateway
+          rootInigoInstance.updateSchema(coreSupergraphSdl)
+        } else {
+          // use-case: apollo-server without gateway
+          try {
+            const schema_str = printSchema(apiSchema)
+            rootInigoInstance.updateSchema(schema_str)
+          } catch(e) {
+            console.error("inigo.js: cannot print schema.", e)
           }
         }
-      };
-    },
+      }
+    };
+  }
 
+  const handlers = {
 
     // 'requestDidStart' callback is triggered when apollo receives request.
     // It returns handlers for query lifecycle events.
@@ -354,6 +356,13 @@ function InigoPlugin(config) {
       };
     }
   }
+
+  // attach callback only if schema was not passed explicitly
+  if (config.Schema == null) {
+    handlers.serverWillStart = serverWillStart
+  }
+
+  return handlers;
 }
 
 function setResponse(respContext, processed) {
