@@ -1,6 +1,6 @@
 {
   "name": "inigo.js",
-  "version": "0.21.0",
+  "version": "0.21.2",
   "description": "GraphQL Middleware",
   "main": "index.js",
   "scripts": {
