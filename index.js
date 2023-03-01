@@ -413,6 +413,9 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
   #in_progress = false;
   #token;
 
+  // if set to true, inigo will send SDL queries to subgraphs to get schema
+  inigo_sdl = false;
+
   constructor(info = {}, {name, url}) {
     super();
 
@@ -448,9 +451,12 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
     if (rootInigoInstance !== 0 && this.#token !== undefined) {
       let config = new InigoConfig({
         Token: details.token,
-        EgressUrl: url,
         Gateway: rootInigoInstance.instance(),
       })
+
+      if (this.inigo_sdl) {
+        config.EgressUrl = url
+      }
 
       this.#instance = new Inigo(config);
     }
@@ -519,9 +525,12 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
         Promise.resolve().then(() => {
           let config = new InigoConfig({
             Token: this.#token,
-            EgressUrl: this.url,
             Gateway: rootInigoInstance.instance(),
           })
+
+          if (this.inigo_sdl) {
+            config.EgressUrl = this.url
+          }
 
           this.#instance = new Inigo(config);
 
