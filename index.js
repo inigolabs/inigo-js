@@ -425,7 +425,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
   // if set to true, inigo will send SDL queries to subgraphs to get schema
   inigo_sdl = false;
 
-  constructor(info = {}, {name, url}, sdl = false) {
+  constructor({name, url}, info, sdl = false) {
     super();
 
     if (!name) {
@@ -447,6 +447,11 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
     this.name = name
     this.url = url
     this.inigo_sdl = sdl
+
+    if (info === undefined || info === null) {
+      // info is not passed. Skit Inigo instance creation silently
+      return
+    }
 
     const details = info[name]
     if (details === undefined) {
