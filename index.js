@@ -482,10 +482,10 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
     return await super.sendRequest(request, context)
   }
 
-  async processRequest({ request, context }) {
+  async processRequest({ request, context, incomingRequestContext }) {
     let query = this.#instance.newQuery({
       query: request.query,
-      operationName: request.operationName,
+      operationName: request.operationName || incomingRequestContext?.operationName,
       variables: request.variables,
     });
 
