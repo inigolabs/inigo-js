@@ -409,12 +409,12 @@ async function InigoFetchGatewayInfo(token) {
       }
     }`;
 
-  let resp = await graphQLClient.request(query);
-
-  return resp?.gatewayInfo?.services?.reduce((acc, i) => {
-    acc[i.name] = i
-    return acc
-  }, {})
+  return graphQLClient.request(query).then(resp => {
+    return resp?.gatewayInfo?.services?.reduce((acc, i) => {
+      acc[i.name] = i
+      return acc
+    }, {})
+  })
 }
 
 class InigoRemoteDataSource extends RemoteGraphQLDataSource {

@@ -52,7 +52,7 @@ interface InigoGatewayInfo {
   [key: string]: InigoSubGraphInfo;
 }
 
-export function InigoFetchGatewayInfo(token?: string): InigoGatewayInfo;
+export function InigoFetchGatewayInfo(token?: string): Promise<InigoGatewayInfo>;
 
 export class InigoRemoteDataSource extends RemoteGraphQLDataSource {
   constructor(info: InigoGatewayInfo, server: ServiceEndpointDefinition, sdl?: boolean);
