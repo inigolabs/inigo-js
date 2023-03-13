@@ -55,7 +55,7 @@ interface InigoGatewayInfo {
 export function InigoFetchGatewayInfo(token?: string): Promise<InigoGatewayInfo>;
 
 export class InigoRemoteDataSource extends RemoteGraphQLDataSource {
-  constructor(info: InigoGatewayInfo, server: ServiceEndpointDefinition, sdl?: boolean);
+  constructor(server: ServiceEndpointDefinition, info?: InigoGatewayInfo, sdl?: boolean);
 
   onBeforeSendRequest?(options: GraphQLDataSourceProcessOptions): void | Promise<void>;
   onAfterReceiveResponse?(requestContext: Required<Pick<GatewayGraphQLRequestContext, 'request' | 'response' | 'context'>>): GatewayGraphQLResponse | Promise<GatewayGraphQLResponse>;
