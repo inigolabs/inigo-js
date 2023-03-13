@@ -19,9 +19,6 @@ const supergraphSdl = new IntrospectAndCompose({
 // INIGO: instead of 'willSendRequest' and 'didReceiveResponse' use callbacks 'onBeforeSendRequest' and 'onAfterReceiveResponse'.
 // INIGO: Signatures of callbacks are same.
 class CustomRemoteDataSource extends InigoRemoteDataSource {
-  // INIGO: set to true if you want Inigo subgraph instances to make SDL queries to subgraph services to get schema
-  inigo_sdl = true;
-
   async onBeforeSendRequest({ request, context }) {
     if (context.req && context.req.headers) {
       // pass all headers to subgraph
@@ -34,8 +31,6 @@ class CustomRemoteDataSource extends InigoRemoteDataSource {
   }
 
   async onAfterReceiveResponse({ request, response , context }) {
-    console.log(context.inigo.blocked) // log request status
-
     return response // return response if it was modified
   }
 }
@@ -58,14 +53,16 @@ function logHeadersAndOpPlugin() {
   const gateway = new ApolloGateway({
     supergraphSdl: supergraphSdl,
     buildService(service) {
-      return new CustomRemoteDataSource(info, service) // INIGO: this is required to get sub-graph visibility.
+      return new CustomRemoteDataSource(service, info, true) // INIGO: this is required to get sub-graph visibility.
     }
   })
+
+  const inigo = InigoPlugin() // INIGO: this line creates the parent Inigo plugin instance, required for Inigo sub-graph to work.
 
   const server = new ApolloServer({
     gateway: gateway,
     plugins: [
-      InigoPlugin(), // INIGO: this line creates the parent Inigo plugin instance, required for Inigo sub-graph to work.
+      inigo,
       logHeadersAndOpPlugin(),
     ],
   });
