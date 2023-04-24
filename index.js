@@ -22,7 +22,8 @@ const InigoConfig = struct({
   Schema: string,
   Introspection: string,
   EgressUrl: string,
-  Gateway: uint64
+  Gateway: uint64,
+  Name: string,
 });
 
 function getArch() {
@@ -77,8 +78,8 @@ const ffi = Library(libraryPath, {
   check_lasterror: [ string, [] ],
 });
 
-class Inigo {
-  #instance = 0;
+class InigoInstance {
+  #handle = 0;
 
   constructor(config) {
     // Get introspection schema
@@ -86,30 +87,25 @@ class Inigo {
       config.Introspection = `{ "data": ${JSON.stringify(introspectionFromSchema(buildSchema(config.Schema)))} }`
     }
 
-    this.#instance = ffi.create(config.ref());
+    this.#handle = ffi.create(config.ref());
     const err = ffi.check_lasterror();
     if (err != "") {
       console.log("inigo-js:", err);
       process.exit()
     }
-
-    if (this.#instance == 0) {
-      console.log("inigo-js: error, instance could not be created.");
-      process.exit()
-    }
   }
 
   newQuery(query) {
-    return new Query(this.#instance, query);
+    return new Query(this.#handle, query);
   }
 
-  instance() {
-    return this.#instance;
+  handle() {
+    return this.#handle;
   }
 
   updateSchema(schema) {
     const buf = Buffer.from(schema)
-    ffi.update_schema(this.#instance, buf, buf.length)
+    ffi.update_schema(this.#handle, buf, buf.length)
   }
 }
 
@@ -210,159 +206,177 @@ function getCtxKey(requestContext) {
 let rootInigoInstance = 0;
 
 function InigoPlugin(config) {
-  if (process.env.INIGO_ENABLE === "false") {
-    // return empty handlers. It's mandatory to return the value from here.
-    return {}
+  const inigo = new Inigo(config)
+  return inigo.plugin()
+}
+
+class Inigo {
+  #instance;
+
+  constructor(config) {
+    if (process.env.INIGO_ENABLE === "false") {
+      // return empty handlers. It's mandatory to return the value from here.
+      return {}
+    }
+
+    // rootInigoInstance is a singleton
+    if (rootInigoInstance !== 0) {
+      throw new Error("Only one instance of InigoPlugin can be created.")
+    }
+
+    if (!config) {
+      // if config is not provided, create new one with the token from env var
+      config = new InigoConfig({
+        Token: process.env.INIGO_SERVICE_TOKEN
+      })
+    }
+
+    this.#instance = new InigoInstance(config);
+    if (this.#instance.handle() === 0) {
+      console.log("inigo-js: error, instance could not be created.");
+      process.exit();
+    }
+
+    // to preserve backwards compatibility
+    rootInigoInstance = this.#instance;
   }
 
-  if (!config) {
-    // if config is not provided, create new one with the token from env var
-    config = new InigoConfig({
-      Token: process.env.INIGO_SERVICE_TOKEN
-    })
+  instance() {
+    return this.#instance;
   }
 
-  // rootInigoInstance is a singleton
-  if (rootInigoInstance !== 0) {
-    throw new Error("Only one instance of InigoPlugin can be created.")
-  }
+  plugin() {
+    if (this.#instance === 0) {
+      console.warn("schemaDidLoadOrUpdate: no inigo plugin instance")
 
-  rootInigoInstance = new Inigo(config);
+      return {}
+    }
 
-  const serverWillStart = async function({ apollo, schema, logger }) {
+    // store in a closure
+    const instance = this.#instance
+
     return {
-      schemaDidLoadOrUpdate({ apiSchema, coreSupergraphSdl }) {
-        if (coreSupergraphSdl !== undefined) {
-          // use-case: apollo-server with gateway
-          rootInigoInstance.updateSchema(coreSupergraphSdl)
-        } else {
-          // use-case: apollo-server without gateway
-          try {
-            const schema_str = printSchema(apiSchema)
-            rootInigoInstance.updateSchema(schema_str)
-          } catch(e) {
-            console.error("inigo.js: cannot print schema.", e)
-          }
-        }
-      }
-    };
-  }
-
-  const handlers = {
-
-    // 'requestDidStart' callback is triggered when apollo receives request.
-    // It returns handlers for query lifecycle events.
-    async requestDidStart(requestContext) {
-      // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
-
-      if (rootInigoInstance === 0) {
-        console.warn("no inigo plugin instance")
-        return
-      }
-
-      // context key is derived once for every query. It's different based on the apollo server version
-      let ctxKey = getCtxKey(requestContext)
-
-      let query; // instance of the Inigo query
-      let response; // optional. If request was blocked by Inigo.
-
-      return {
-        // didResolveOperation callback is invoked after server has determined the string representation of the query.
-        // Client can send query as a string or APQ (only query hash is sent). In this case, callback is executed after
-        // query string is retrieved from cache by the hash.
-        // Also, it's not triggered on the first APQ, when client sends query hash, but server cannot retrieve it.
-        didResolveOperation(ctx) {
-          // create Inigo query and store in a closure
-          // ctx.source always holds the string representation of the query, in case of regular request or APQ
-          query = rootInigoInstance.newQuery({
-            query: ctx.source,
-            operationName: ctx.request.operationName,
-            variables: ctx.request.variables,
-          });
-
-          // Create request context, for storing blocked status
-          if (ctx[ctxKey].inigo === undefined) {
-            ctx[ctxKey].inigo = { blocked: false };
-          }
-
-          // process request
-          const processed = query.processRequest(ctx.request.http.headers);
-
-          if (processed?.response != null) {
-            response = processed.response
-
-            return
-          }
-
-          // request query has been mutated
-          if (processed?.request != null) {
-            ctx.operationName = processed.request.operationName;
-            ctx.request.operationName = processed.request.operationName;
-            ctx.request.variables = processed.request.variables;
-
-            ctx.document = parse(processed.request.query);
-            ctx.operation = getOperationAST(ctx.document, ctx.operationName);
-          }
-        },
-
-        // responseForOperation executed right before request is propagated to the server
-        responseForOperation(opCtx) {
-          // response was provided by Inigo.
-          if (response === undefined) {
-            return
-          }
-
-          if (ctxKey === "context") { // v2,v3
-            return response
-          }
-
-          // return response in order request to NOT be propagated to the server
-          return {
-            http: {
-              status: 200
-            },
-            body: {
-              kind: 'single',
-              singleResult: response
+      async serverWillStart({ apollo, schema, logger }) {
+        return {
+          schemaDidLoadOrUpdate({ apiSchema, coreSupergraphSdl }) {
+            if (coreSupergraphSdl !== undefined) {
+              // use-case: apollo-server with gateway
+              instance.updateSchema(coreSupergraphSdl)
+            } else {
+              // use-case: apollo-server without gateway
+              try {
+                const schema_str = printSchema(apiSchema)
+                instance.updateSchema(schema_str)
+              } catch(e) {
+                console.error("inigo.js: cannot print schema.", e)
+              }
             }
-          };
-        },
-
-        // willSendResponse is triggered before response is sent out
-        async willSendResponse(respContext) {
-          // query was not processed by Inigo.
-          // Ex.: first APQ query (only query hash comes, server cannot resolve hash to string)
-          if (query === undefined) {
-            return
           }
+        };
+      },
 
-          // response was provided by Inigo.
-          if (response !== undefined) {
-            return
+      // 'requestDidStart' callback is triggered when apollo receives request.
+      // It returns handlers for query lifecycle events.
+      async requestDidStart(requestContext) {
+        // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
+
+        // context key is derived once for every query. It's different based on the apollo server version v2 - v4
+        const ctxKey = getCtxKey(requestContext)
+
+        let query; // instance of the Inigo query
+        let response; // optional. If request was blocked by Inigo.
+
+        return {
+          // didResolveOperation callback is invoked after server has determined the string representation of the query.
+          // Client can send query as a string or APQ (only query hash is sent). In this case, callback is executed after
+          // query string is retrieved from cache by the hash.
+          // Also, it's not triggered on the first APQ, when client sends query hash, but server cannot retrieve it.
+          didResolveOperation(ctx) {
+            // create Inigo query and store in a closure
+            // ctx.source always holds the string representation of the query, in case of regular request or APQ
+            query = instance.newQuery({
+              query: ctx.source,
+              operationName: ctx.request.operationName,
+              variables: ctx.request.variables,
+            });
+
+            // Create request context, for storing blocked status
+            if (ctx[ctxKey].inigo === undefined) {
+              ctx[ctxKey].inigo = { blocked: false };
+            }
+
+            // process request
+            const processed = query.processRequest(ctx.request.http.headers);
+
+            if (processed?.response != null) {
+              response = processed.response
+
+              return
+            }
+
+            // request query has been mutated
+            if (processed?.request != null) {
+              ctx.operationName = processed.request.operationName;
+              ctx.request.operationName = processed.request.operationName;
+              ctx.request.variables = processed.request.variables;
+
+              ctx.document = parse(processed.request.query);
+              ctx.operation = getOperationAST(ctx.document, ctx.operationName);
+            }
+          },
+
+          // responseForOperation executed right before request is propagated to the server
+          responseForOperation(opCtx) {
+            // response was provided by Inigo.
+            if (response === undefined) {
+              return
+            }
+
+            if (ctxKey === "context") { // v2,v3
+              return response
+            }
+
+            // return response in order request to NOT be propagated to the server
+            return {
+              http: {
+                status: 200
+              },
+              body: {
+                kind: 'single',
+                singleResult: response
+              }
+            };
+          },
+
+          // willSendResponse is triggered before response is sent out
+          async willSendResponse(respContext) {
+            // query was not processed by Inigo.
+            // Ex.: first APQ query (only query hash comes, server cannot resolve hash to string)
+            if (query === undefined) {
+              return
+            }
+
+            // response was provided by Inigo.
+            if (response !== undefined) {
+              return
+            }
+
+            // response came from the server.
+            let resp;
+            if (respContext.response?.body?.singleResult !== undefined) {
+              resp = respContext.response.body.singleResult
+            } else {
+              resp = respContext.response
+            }
+
+            const rawResponse = JSON.stringify(resp, (key, value) => (key == "http" ? undefined : value));
+            const processed = query.processResponse(rawResponse);
+            setResponse(processed)
           }
-
-          // response came from the server.
-          let resp;
-          if (respContext.response?.body?.singleResult !== undefined) {
-            resp = respContext.response.body.singleResult
-          } else {
-            resp = respContext.response
-          }
-
-          const rawResponse = JSON.stringify(resp, (key, value) => (key == "http" ? undefined : value));
-          const processed = query.processResponse(rawResponse);
-          setResponse(respContext, processed);
-        }
-      };
+        };
+      }
     }
   }
-
-  // attach callback only if schema was not passed explicitly
-  if (config.Schema == null) {
-    handlers.serverWillStart = serverWillStart
-  }
-
-  return handlers;
 }
 
 function setResponse(respContext, processed) {
@@ -418,12 +432,7 @@ async function InigoFetchGatewayInfo(token) {
 }
 
 class InigoRemoteDataSource extends RemoteGraphQLDataSource {
-  #instance = 0
-  #in_progress = false;
-  #token;
-
-  // if set to true, inigo will send SDL queries to subgraphs to get schema
-  inigo_sdl = false;
+  #instance = null
 
   constructor({name, url}, info, sdl = false) {
     super();
@@ -446,7 +455,24 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 
     this.name = name
     this.url = url
-    this.inigo_sdl = sdl
+
+    if (info instanceof Inigo) {
+      let config = new InigoConfig({
+        Name: name,
+        Gateway: info.instance().handle(),
+        // if set to true, inigo will send SDL queries to subgraphs to get schema
+        EgressUrl: sdl ? url : null,
+      })
+
+      const instance = new InigoInstance(config);
+      if (instance.handle() === 0) {
+        console.error(`inigo.js : cannot create subgraph '${this.name}' instance.`);
+      } else {
+        this.#instance = instance;
+      }
+
+      return
+    }
 
     if (info === undefined || info === null) {
       // info is not passed. Skit Inigo instance creation silently
@@ -455,25 +481,26 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 
     const details = info[name]
     if (details === undefined) {
-      console.error(`inigo: service '${this.name}' is not specified for gateway.`)
+      console.error(`inigo.js : service '${this.name}' is not specified for gateway.`)
       return
     }
 
-    if (typeof details.token === "string" && details.token !== "") {
-      this.#token = details.token;
+    if (typeof details.token !== "string" || details.token === "") {
+      console.error(`inigo.js : token is not found for service '${this.name}'.`)
+      return
     }
 
-    if (rootInigoInstance !== 0 && this.#token !== undefined) {
+    if (rootInigoInstance !== 0) {
       let config = new InigoConfig({
         Token: details.token,
-        Gateway: rootInigoInstance.instance(),
+        Gateway: rootInigoInstance.handle(),
       })
 
-      if (this.inigo_sdl) {
+      if (sdl) {
         config.EgressUrl = url
       }
 
-      this.#instance = new Inigo(config);
+      this.#instance = new InigoInstance(config);
     }
   }
 
@@ -529,31 +556,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       }
     }
 
-    // create instance asynchronously, to not block current request
-    if (this.#instance === 0
-        && rootInigoInstance !== 0
-        && this.#token !== undefined
-        && !this.#in_progress) {
-
-        this.#in_progress = true;
-
-        Promise.resolve().then(() => {
-          let config = new InigoConfig({
-            Token: this.#token,
-            Gateway: rootInigoInstance.instance(),
-          })
-
-          if (this.inigo_sdl) {
-            config.EgressUrl = this.url
-          }
-
-          this.#instance = new Inigo(config);
-
-          console.log(`inigo subgraph instance created on the flight: ${this.name}`)
-        })
-    }
-
-    if (this.#instance !== 0) {
+    if (this.#instance !== null) {
       await this.processRequest(options)
     }
   }
@@ -590,5 +593,6 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 exports.InigoFetchGatewayInfo = InigoFetchGatewayInfo;
 exports.InigoRemoteDataSource = InigoRemoteDataSource;
 exports.InigoConfig = InigoConfig;
+exports.Inigo = Inigo;
 exports.InigoPlugin = InigoPlugin;
 exports.version = version;
