@@ -48,6 +48,12 @@ interface InigoSubGraphInfo {
   url: string
   token: string
 }
+
+export class Inigo {
+  constructor(cfg?: Config);
+  plugin(): any;
+}
+
 interface InigoGatewayInfo {
   [key: string]: InigoSubGraphInfo;
 }
@@ -55,7 +61,7 @@ interface InigoGatewayInfo {
 export function InigoFetchGatewayInfo(token?: string): Promise<InigoGatewayInfo>;
 
 export class InigoRemoteDataSource extends RemoteGraphQLDataSource {
-  constructor(server: ServiceEndpointDefinition, info?: InigoGatewayInfo, sdl?: boolean);
+  constructor(server: ServiceEndpointDefinition, info?: Inigo);
 
   onBeforeSendRequest?(options: GraphQLDataSourceProcessOptions): void | Promise<void>;
   onAfterReceiveResponse?(requestContext: Required<Pick<GatewayGraphQLRequestContext, 'request' | 'response' | 'context'>>): GatewayGraphQLResponse | Promise<GatewayGraphQLResponse>;

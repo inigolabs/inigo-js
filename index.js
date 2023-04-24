@@ -57,14 +57,15 @@ if (fs.existsSync("libinigo.so")) {
 
 const ffi = Library(libraryPath, {
   create: [uint64, [ref.refType(InigoConfig)]],
-  process_request: [ 
+  process_service_request: [
     uint64, // requestData handle
-    [ 
-      uint64, // request handle 
+    [
+      uint64, // request handle
+      pointer, int, // subgraph name
       pointer, int, // header
       pointer, int, // query
       ref.refType(pointer), ref.refType(int), // result
-      ref.refType(pointer), ref.refType(int) // status
+      ref.refType(pointer), ref.refType(int), // status
     ],
   ],
   process_response: [
@@ -79,7 +80,7 @@ const ffi = Library(libraryPath, {
   shutdown: [ _void_, [ uint64 ] ],
 });
 
-class Inigo {
+class InigoInstance {
   #instance = 0;
 
   constructor(config) {
@@ -122,10 +123,19 @@ class Query {
   #instance = 0;
   #handle = 0;
   #query = {};
+  #subgraph = "";
 
   constructor(instance, query) {
     this.#instance = instance;
     this.#query = query;
+  }
+
+  setSubgraphName(name) {
+    this.#subgraph = name
+  }
+
+  handle() {
+    return this.#handle
   }
 
   processRequest(headers) {
@@ -143,9 +153,12 @@ class Query {
     }
 
     const headersBuf = Buffer.from(JSON.stringify(newHeaders));
+    const subgraph = Buffer.from(this.#subgraph);
 
-    this.#handle = ffi.process_request(
+    this.#handle = ffi.process_service_request(
         this.#instance,
+        subgraph,
+        subgraph.length,
         headersBuf,
         headersBuf.length,
         input,
@@ -208,42 +221,65 @@ function getCtxKey(requestContext) {
   return "contextValue"
 }
 
-let rootInigoInstance = 0;
-
 function InigoPlugin(config) {
-  if (process.env.INIGO_ENABLE === "false") {
-    // return empty handlers. It's mandatory to return the value from here.
-    return {}
+  const inigo = new Inigo(config)
+  return inigo.plugin()
+}
+
+class Inigo {
+  #instance;
+  #listenForSchema = false;
+
+  constructor(config) {
+    if (process.env.INIGO_ENABLE === "false") {
+      return
+    }
+
+    if (!config) {
+      // if config is not provided, create new one with the token from env var
+      config = new InigoConfig({
+        Token: process.env.INIGO_SERVICE_TOKEN,
+        DisableResponseData: true,
+      })
+    }
+
+    config.Name = "inigo-js";
+    config.Runtime = "node" + process.version.match(/\d+\.\d+/)[0];
+
+    this.#listenForSchema = config.Schema === null
+    this.#instance = new InigoInstance(config);
+    if (this.#instance.instance() === 0) {
+      console.log("inigo-js: error, instance could not be created.");
+      process.exit();
+    }
   }
 
-  if (!config) {
-    // if config is not provided, create new one with the token from env var
-    config = new InigoConfig({
-      Token: process.env.INIGO_SERVICE_TOKEN,
-      DisableResponseData: true,
-    })
+  instance() {
+    return this.#instance;
   }
 
-  config.Name = "inigo-js";
-  config.Runtime = "node" + process.version.match(/\d+\.\d+/)[0];
+  plugin() {
+    if (this.#instance === 0) {
+      console.warn("InigoPlugin: Inigo instance is not found")
+      return {} // it's required to return empty handlers
+    }
 
-  // rootInigoInstance is a singleton
-  if (rootInigoInstance !== 0) {
-    throw new Error("Only one instance of InigoPlugin can be created.")
+    return plugin(this.#instance, this.#listenForSchema)
   }
+}
 
-  rootInigoInstance = new Inigo(config);
+function plugin(inigo, listenForSchema) {
 
   const serverWillStart = async function({ apollo, schema, logger }) {
     const schemaDidLoadOrUpdate = function ({ apiSchema, coreSupergraphSdl }) {
       if (coreSupergraphSdl !== undefined) {
         // use-case: apollo-server with gateway
-        rootInigoInstance.updateSchema(coreSupergraphSdl)
+        inigo.updateSchema(coreSupergraphSdl)
       } else {
         // use-case: apollo-server without gateway
         try {
           const schema_str = printSchema(apiSchema)
-          rootInigoInstance.updateSchema(schema_str)
+          inigo.updateSchema(schema_str)
         } catch(e) {
           console.error("inigo.js: cannot print schema.", e)
         }
@@ -252,12 +288,12 @@ function InigoPlugin(config) {
 
     const handlers = {
       serverWillStop: async () => {
-        await rootInigoInstance.shutdown()
+        await inigo.shutdown()
       }
     }
 
     // attach callback only if schema was not passed explicitly
-    if (config.Schema == null) {
+    if (listenForSchema) {
       handlers.schemaDidLoadOrUpdate = schemaDidLoadOrUpdate
     }
 
@@ -271,7 +307,7 @@ function InigoPlugin(config) {
     async requestDidStart(requestContext) {
       // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
 
-      if (rootInigoInstance === 0) {
+      if (inigo.instance() === 0) {
         console.warn("no inigo plugin instance")
         return
       }
@@ -290,7 +326,7 @@ function InigoPlugin(config) {
         didResolveOperation(ctx) {
           // create Inigo query and store in a closure
           // ctx.source always holds the string representation of the query, in case of regular request or APQ
-          query = rootInigoInstance.newQuery({
+          query = inigo.newQuery({
             query: ctx.source,
             operationName: ctx.request.operationName,
             variables: ctx.request.variables,
@@ -439,14 +475,9 @@ async function InigoFetchGatewayInfo(token) {
 }
 
 class InigoRemoteDataSource extends RemoteGraphQLDataSource {
-  #instance = 0;
-  #in_progress = false;
-  #token;
+  #instance = null
 
-  // if set to true, inigo will send SDL queries to subgraphs to get schema
-  inigo_sdl = false;
-
-  constructor({name, url}, info, sdl = false) {
+  constructor({name, url}, inigo) {
     super();
 
     if (!name) {
@@ -467,35 +498,16 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 
     this.name = name
     this.url = url
-    this.inigo_sdl = sdl
 
-    if (info === undefined || info === null) {
-      // info is not passed. Skit Inigo instance creation silently
-      return
-    }
-
-    const details = info[name]
-    if (details === undefined) {
-      console.error(`inigo: service '${this.name}' is not specified for gateway.`)
-      return
-    }
-
-    if (typeof details.token === "string" && details.token !== "") {
-      this.#token = details.token;
-    }
-
-    if (rootInigoInstance !== 0 && this.#token !== undefined) {
-      let config = new InigoConfig({
-        Token: details.token,
-        Gateway: rootInigoInstance.instance(),
-        DisableResponseData: true,
-      })
-
-      if (this.inigo_sdl) {
-        config.EgressUrl = url
-      }
-
-      this.#instance = new Inigo(config);
+    if (inigo instanceof Inigo) {
+      this.#instance = inigo.instance();
+    } else {
+      throw new Error(`
+      inigo.js : InigoRemoteDataSource
+      
+      Inigo instance should be provided to InigoRemoteDataSource.
+      
+      `)
     }
   }
 
@@ -515,10 +527,19 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       operationName: request.operationName || incomingRequestContext?.operationName,
       variables: request.variables,
     });
+    query.setSubgraphName(this.name)
 
     let traceparent = incomingRequestContext.request.http.headers.get("traceparent")
     if (traceparent){
       request.http.headers.set('traceparent', traceparent);
+    }
+
+    const processed = query.processRequest(request.http.headers);
+
+    // handle case if invalid subgraph name is passed
+    if (query.handle() === 0) {
+      console.error(`inigo.js: cannot process subgraph '${this.name}' request.`)
+      return
     }
 
     if (request.inigo !== undefined) {
@@ -526,8 +547,6 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
     }
 
     request.inigo = { query: query }
-
-    const processed = query.processRequest(request.http.headers);
 
     // introspection request
     if (processed?.response != null) {
@@ -558,31 +577,6 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       } catch (e) {
         console.error(`${this.name}: onBeforeSendRequest callback error. Error: ${e}`)
       }
-    }
-
-    // create instance asynchronously, to not block current request
-    if (this.#instance === 0
-        && rootInigoInstance !== 0
-        && this.#token !== undefined
-        && !this.#in_progress) {
-
-        this.#in_progress = true;
-
-        Promise.resolve().then(() => {
-          let config = new InigoConfig({
-            Token: this.#token,
-            Gateway: rootInigoInstance.instance(),
-            DisableResponseData: true,
-          })
-
-          if (this.inigo_sdl) {
-            config.EgressUrl = this.url
-          }
-
-          this.#instance = new Inigo(config);
-
-          console.log(`inigo subgraph instance created on the flight: ${this.name}`)
-        })
     }
 
     if (this.#instance !== 0) {
@@ -810,4 +804,5 @@ exports.InigoSchemaManager = InigoSchemaManager;
 exports.InigoRemoteDataSource = InigoRemoteDataSource;
 exports.InigoConfig = InigoConfig;
 exports.InigoPlugin = InigoPlugin;
+exports.Inigo = Inigo;
 exports.version = version;
