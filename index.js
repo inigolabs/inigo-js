@@ -300,6 +300,10 @@ function InigoPlugin(config) {
             ctx.request.operationName = processed.request.operationName;
             ctx.request.variables = processed.request.variables;
 
+            if (processed.request.extensions && processed.request.extensions.traceparent) {
+              ctx.request.http.headers.set('traceparent', processed.request.extensions.traceparent);
+            }
+
             ctx.document = parse(processed.request.query);
             ctx.operation = getOperationAST(ctx.document, ctx.operationName);
           }
@@ -494,6 +498,11 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       variables: request.variables,
     });
 
+    let traceparent = incomingRequestContext.request.http.headers.get("traceparent")
+    if (traceparent){
+      request.http.headers.set('traceparent', traceparent);
+    }
+
     if (request.inigo !== undefined) {
       console.error(`inigo.js: inigo is present on request.`)
     }
@@ -514,6 +523,10 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       request.query = processed.request.query;
       request.operationName = processed.request.operationName;
       request.variables = processed.request.variables;
+
+      if (processed.request.extensions && processed.request.extensions.traceparent){
+        request.http.headers.set('traceparent', processed.request.extensions.traceparent);
+      }
     }
   }
 
