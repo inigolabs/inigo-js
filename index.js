@@ -23,7 +23,7 @@ const InigoConfig = struct({
   Introspection: string,
   EgressUrl: string,
   Gateway: uint64,
-  DisableResponseMerge: bool,
+  DisableResponseData: bool,
 });
 
 function getArch() {
@@ -225,7 +225,7 @@ function InigoPlugin(config) {
     // if config is not provided, create new one with the token from env var
     config = new InigoConfig({
       Token: process.env.INIGO_SERVICE_TOKEN,
-      DisableResponseMerge: false,
+      DisableResponseData: true,
     })
   }
 
@@ -373,8 +373,9 @@ function InigoPlugin(config) {
 
           const rawResponse = JSON.stringify(resp, (key, value) => (key == "http" ? undefined : value));
           const processed = query.processResponse(rawResponse);
-          setResponse(respContext, processed);
-        }
+
+          setResponse(respContext, modResponse(resp, processed));
+         }
       };
     }
   }
@@ -486,7 +487,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       let config = new InigoConfig({
         Token: details.token,
         Gateway: rootInigoInstance.instance(),
-        DisableResponseMerge: false,
+        DisableResponseData: true,
       })
 
       if (this.inigo_sdl) {
@@ -570,7 +571,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
           let config = new InigoConfig({
             Token: this.#token,
             Gateway: rootInigoInstance.instance(),
-            DisableResponseMerge: false,
+            DisableResponseData: true,
           })
 
           if (this.inigo_sdl) {
@@ -611,10 +612,33 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
     // "http" part is attached by the RemoteGraphQLDataSource, remove before processResponse fn execution
     const rawResponse = JSON.stringify(response, (key, value) => (key == "http" ? undefined : value));
     const inigo_resp = request.inigo.query.processResponse(rawResponse);
-    inigo_resp.http = response.http;
 
-    return inigo_resp;
+    return modResponse(response, inigo_resp);
   }
+}
+
+function modResponse(response, extended) {
+  if (extended.extensions){
+    if (!response.extensions){
+      response.extensions = {}
+    }
+
+    for (const [key, value] of Object.entries(extended.extensions)) {
+      response.extensions[key] = value
+    }
+  }
+
+  if (extended.errors){
+    if (!response.errors){
+      response.errors = []
+    }
+
+    for (const error of extended.errors) {
+      response.errors.push(error)
+    }
+  }
+
+  return response
 }
 
 exports.InigoFetchGatewayInfo = InigoFetchGatewayInfo;
