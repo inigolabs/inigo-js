@@ -76,6 +76,7 @@ const ffi = Library(libraryPath, {
   disposeMemory: [ _void_, [ pointer ] ],
   update_schema: [ bool, [ uint64, string, int ] ],
   check_lasterror: [ string, [] ],
+  shutdown: [ _void_, [ uint64 ] ],
 });
 
 class Inigo {
@@ -111,6 +112,10 @@ class Inigo {
   updateSchema(schema) {
     const buf = Buffer.from(schema)
     ffi.update_schema(this.#instance, buf, buf.length)
+  }
+
+  shutdown(){
+    ffi.shutdown(this.#instance)
   }
 }
 
@@ -232,22 +237,33 @@ function InigoPlugin(config) {
   rootInigoInstance = new Inigo(config);
 
   const serverWillStart = async function({ apollo, schema, logger }) {
-    return {
-      schemaDidLoadOrUpdate({ apiSchema, coreSupergraphSdl }) {
-        if (coreSupergraphSdl !== undefined) {
-          // use-case: apollo-server with gateway
-          rootInigoInstance.updateSchema(coreSupergraphSdl)
-        } else {
-          // use-case: apollo-server without gateway
-          try {
-            const schema_str = printSchema(apiSchema)
-            rootInigoInstance.updateSchema(schema_str)
-          } catch(e) {
-            console.error("inigo.js: cannot print schema.", e)
-          }
+    const schemaDidLoadOrUpdate = function ({ apiSchema, coreSupergraphSdl }) {
+      if (coreSupergraphSdl !== undefined) {
+        // use-case: apollo-server with gateway
+        rootInigoInstance.updateSchema(coreSupergraphSdl)
+      } else {
+        // use-case: apollo-server without gateway
+        try {
+          const schema_str = printSchema(apiSchema)
+          rootInigoInstance.updateSchema(schema_str)
+        } catch(e) {
+          console.error("inigo.js: cannot print schema.", e)
         }
       }
-    };
+    }
+
+    const handlers = {
+      serverWillStop: async () => {
+        await rootInigoInstance.shutdown()
+      }
+    }
+
+    // attach callback only if schema was not passed explicitly
+    if (config.Schema == null) {
+      handlers.schemaDidLoadOrUpdate = schemaDidLoadOrUpdate
+    }
+
+    return handlers;
   }
 
   const handlers = {
@@ -363,10 +379,7 @@ function InigoPlugin(config) {
     }
   }
 
-  // attach callback only if schema was not passed explicitly
-  if (config.Schema == null) {
-    handlers.serverWillStart = serverWillStart
-  }
+  handlers.serverWillStart = serverWillStart
 
   return handlers;
 }
