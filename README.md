@@ -19,7 +19,7 @@
 
 This package is the Inigo plugin for Apollo server.
 
-Documentation is available here: [docs.inigo.io](https://docs.inigo.io/docs/deployment/javascript_apollo_plugin.html)
+Documentation is available here: [docs.inigo.io](https://docs.inigo.io/deployment/javascript_apollo_plugin)
 
 ### Contributing
 
