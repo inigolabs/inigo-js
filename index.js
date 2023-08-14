@@ -22,7 +22,8 @@ const InigoConfig = struct({
   Schema: string,
   Introspection: string,
   EgressUrl: string,
-  Gateway: uint64
+  Gateway: uint64,
+  DisableResponseData: bool,
 });
 
 function getArch() {
@@ -218,7 +219,8 @@ function InigoPlugin(config) {
   if (!config) {
     // if config is not provided, create new one with the token from env var
     config = new InigoConfig({
-      Token: process.env.INIGO_SERVICE_TOKEN
+      Token: process.env.INIGO_SERVICE_TOKEN,
+      DisableResponseData: true,
     })
   }
 
@@ -376,16 +378,48 @@ function setResponse(respContext, processed) {
 
   // if 'singleResult' key is present - it's apollo-server v4, otherwise it v2/v3
   if (respContext.response?.body?.singleResult !== undefined) {
-    respContext.response.body.singleResult.data = processed?.data
-    respContext.response.body.singleResult.errors = processed?.errors
-    respContext.response.body.singleResult.extensions = processed?.extensions
+    if (processed.errors) {
+      if (!respContext.response.body.singleResult.errors) {
+        respContext.response.body.singleResult.errors = [];
+      }
+
+      for (const error of processed.errors) {
+        respContext.response.body.singleResult.errors.push(error);
+      }
+    }
+
+    if (processed.extensions) {
+      if (!respContext.response.body.singleResult.extensions) {
+        respContext.response.body.singleResult.extensions = {};
+      }
+
+      for (const [key, value] of Object.entries(processed.extensions)) {
+        respContext.response.body.singleResult.extensions[key] = value;
+      }
+    }
 
     return
   }
 
-  respContext.response.data = processed?.data;
-  respContext.response.errors = processed?.errors;
-  respContext.response.extensions = processed?.extensions;
+  if (processed.errors) {
+    if (!respContext.response.errors) {
+      respContext.response.errors = [];
+    }
+
+    for (const error of processed.errors) {
+      respContext.response.errors.push(error);
+    }
+  }
+
+  if (processed.extensions) {
+    if (!respContext.response.extensions) {
+      respContext.response.extensions = {};
+    }
+
+    for (const [key, value] of Object.entries(processed.extensions)) {
+      respContext.response.extensions[key] = value;
+    }
+  }
 }
 
 async function InigoFetchGatewayInfo(token) {
@@ -471,6 +505,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       let config = new InigoConfig({
         Token: details.token,
         Gateway: rootInigoInstance.instance(),
+        DisableResponseData: true,
       })
 
       if (this.inigo_sdl) {
@@ -554,6 +589,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
           let config = new InigoConfig({
             Token: this.#token,
             Gateway: rootInigoInstance.instance(),
+            DisableResponseData: true,
           })
 
           if (this.inigo_sdl) {
