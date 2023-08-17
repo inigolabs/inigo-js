@@ -222,11 +222,6 @@ function InigoPlugin(config) {
     })
   }
 
-  // rootInigoInstance is a singleton
-  if (rootInigoInstance !== 0) {
-    throw new Error("Only one instance of InigoPlugin can be created.")
-  }
-
   rootInigoInstance = new Inigo(config);
 
   const serverWillStart = async function({ apollo, schema, logger }) {
@@ -254,11 +249,6 @@ function InigoPlugin(config) {
     // It returns handlers for query lifecycle events.
     async requestDidStart(requestContext) {
       // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
-
-      if (rootInigoInstance === 0) {
-        console.warn("no inigo plugin instance")
-        return
-      }
 
       // context key is derived once for every query. It's different based on the apollo server version
       let ctxKey = getCtxKey(requestContext)
@@ -422,7 +412,8 @@ async function InigoFetchGatewayInfo(token) {
 }
 
 class InigoRemoteDataSource extends RemoteGraphQLDataSource {
-  #instance = 0
+  #rootInstance = 0;
+  #instance = 0;
   #in_progress = false;
   #token;
 
@@ -430,6 +421,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
   inigo_sdl = false;
 
   constructor({name, url}, info, sdl = false) {
+    this.#rootInstance = rootInigoInstance;
     super();
 
     if (!name) {
@@ -467,10 +459,10 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       this.#token = details.token;
     }
 
-    if (rootInigoInstance !== 0 && this.#token !== undefined) {
+    if (this.#rootInstance !== 0 && this.#token !== undefined) {
       let config = new InigoConfig({
         Token: details.token,
-        Gateway: rootInigoInstance.instance(),
+        Gateway: this.#rootInstance.instance(),
       })
 
       if (this.inigo_sdl) {
@@ -544,7 +536,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 
     // create instance asynchronously, to not block current request
     if (this.#instance === 0
-        && rootInigoInstance !== 0
+        && this.#rootInstance !== 0
         && this.#token !== undefined
         && !this.#in_progress) {
 
@@ -553,7 +545,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
         Promise.resolve().then(() => {
           let config = new InigoConfig({
             Token: this.#token,
-            Gateway: rootInigoInstance.instance(),
+            Gateway: this.#rootInstance.instance(),
           })
 
           if (this.inigo_sdl) {
