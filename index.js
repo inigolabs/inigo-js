@@ -371,8 +371,11 @@ function InigoPlugin(config) {
             resp = respContext.response
           }
 
-          const rawResponse = JSON.stringify(resp, (key, value) => (key == "http" ? undefined : value));
-          const processed = query.processResponse(rawResponse);
+          const processed = query.processResponse(JSON.stringify({
+            errors: resp.errors,
+            response_size: 0,
+            response_body_counts: countResponseFields(resp),
+          }));
 
           setResponse(respContext, modResponse(resp, processed));
          }
@@ -610,8 +613,11 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
     }
 
     // "http" part is attached by the RemoteGraphQLDataSource, remove before processResponse fn execution
-    const rawResponse = JSON.stringify(response, (key, value) => (key == "http" ? undefined : value));
-    const inigo_resp = request.inigo.query.processResponse(rawResponse);
+    const inigo_resp = request.inigo.query.processResponse(JSON.stringify({
+      errors: response.errors,
+      response_size: 0,
+      response_body_counts: countResponseFields(response),
+    }));
 
     return modResponse(response, inigo_resp);
   }
