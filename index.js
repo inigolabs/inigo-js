@@ -641,6 +641,49 @@ function modResponse(response, extended) {
   return response
 }
 
+function countResponseFields(resp) {
+  const counts = {};
+
+  if (resp.data) {
+    countResponseFieldsRecursive(counts, "data", resp.data);
+  }
+
+  if (!counts["data"]) {
+    counts["data"] = 1;
+  }
+  counts.errors = resp.errors ? resp.errors.length : 0;
+  return counts;
+}
+
+function countResponseFieldsRecursive(hm, prefix, val) {
+  if (val instanceof Object === false) {
+    return;
+  }
+
+  const incr = (key, val) => {
+    if (countResponseFieldsRecursive(hm, key, val)) {
+      return;
+    }
+
+    hm[key] = (hm[key] || 0) + 1;
+  };
+
+  if (Array.isArray(val)) {
+    for (let i = 0; i < val.length; i++) {
+      incr(prefix, val[i]);
+    }
+
+    return true;
+  }
+
+  for (const [k, v] of Object.entries(val)) {
+    incr(`${prefix}.${k}`, v);
+  }
+
+  return false;
+}
+
+exports.countResponseFields = countResponseFields;
 exports.InigoFetchGatewayInfo = InigoFetchGatewayInfo;
 exports.InigoRemoteDataSource = InigoRemoteDataSource;
 exports.InigoConfig = InigoConfig;
