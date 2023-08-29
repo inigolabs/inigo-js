@@ -26,5 +26,8 @@
   },
   "bugs": {
     "url": "https://github.com/inigolabs/inigo-js/issues"
+  },
+  "devDependencies": {
+    "jest": "^29.6.4"
   }
 }
