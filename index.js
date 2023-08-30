@@ -22,7 +22,8 @@ const InigoConfig = struct({
   Schema: string,
   Introspection: string,
   EgressUrl: string,
-  Gateway: uint64
+  Gateway: uint64,
+  DisableResponseMerge: bool,
 });
 
 function getArch() {
@@ -218,7 +219,8 @@ function InigoPlugin(config) {
   if (!config) {
     // if config is not provided, create new one with the token from env var
     config = new InigoConfig({
-      Token: process.env.INIGO_SERVICE_TOKEN
+      Token: process.env.INIGO_SERVICE_TOKEN,
+      DisableResponseMerge: false,
     })
   }
 
@@ -471,6 +473,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       let config = new InigoConfig({
         Token: details.token,
         Gateway: rootInigoInstance.instance(),
+        DisableResponseMerge: false,
       })
 
       if (this.inigo_sdl) {
@@ -554,6 +557,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
           let config = new InigoConfig({
             Token: this.#token,
             Gateway: rootInigoInstance.instance(),
+            DisableResponseMerge: false,
           })
 
           if (this.inigo_sdl) {
