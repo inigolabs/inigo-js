@@ -441,7 +441,7 @@ async function InigoFetchGatewayInfo(token) {
 }
 
 class InigoRemoteDataSource extends RemoteGraphQLDataSource {
-  #instance = 0
+  #instance = 0;
   #in_progress = false;
   #token;
 
@@ -689,8 +689,126 @@ function countResponseFieldsRecursive(hm, prefix, val) {
   return false;
 }
 
+const FEDERATED_SCHEMA_QUERY = gql`
+  query FetchFederatedSchema($afterVersion: Int32!) {
+    registry {
+      federatedSchema(afterVersion: $afterVersion) {
+        status
+        version
+        schema
+      }
+    }
+  }
+`;
+
+class InigoSchemaManager {
+  DEFAULT_ENDPOINT = "https://app.inigo.io/agent/query";
+  #interval = 30_000; // 30s
+  #currentSchemaVersion = 0;
+
+  #client = null;
+  #update = null;
+  #timer = null;
+  #onInitError = null;
+
+  constructor({ token, endpoint, onInitError } = {}) {
+    // check Inigo is enabled
+    if (process.env.INIGO_ENABLE === "false") {
+      throw Error(`InigoSchemaManager : cannot be used, when Inigo is disabled.`)
+    }
+
+    // check token
+    let auth = process.env.INIGO_SERVICE_TOKEN
+    if (typeof token === "string" && token !== "") {
+      auth = token
+    }
+    if (auth === "") {
+      throw Error(`
+InigoSchemaManager : Inigo token is not provided.
+
+It can be provided either via INIGO_SERVICE_TOKEN env var, or as a InigoSchemaManager param.
+`)
+    }
+
+    this.#onInitError = onInitError
+
+    let url = this.DEFAULT_ENDPOINT
+    if (typeof endpoint === "string" && endpoint !== "") {
+      url = endpoint
+    }
+
+    // create client once
+    this.#client = new GraphQLClient(url, { headers: { authorization: 'Bearer ' + auth }});
+  }
+
+  async initialize({ update }) {
+    this.#update = update;
+
+    // initial pull
+    let initialSchema;
+    try {
+      initialSchema = await this.pull();
+    } catch (err) {
+      if (this.#onInitError) {
+        initialSchema = await this.#onInitError(err)
+      } else {
+        throw new Error(`Error during initial schema pull: ${err}`);
+      }
+    }
+
+    // start polling
+    this.#timer = setInterval(async () => {
+      try {
+        const schema = await this.pull();
+        if (typeof schema === "string" && schema !== "") {
+          this.#update(schema)
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }, this.#interval);
+
+    return {
+      supergraphSdl: initialSchema,
+      cleanup: async () => {
+        clearInterval(this.#timer)
+      },
+    };
+  }
+
+  async pull() {
+    try {
+      const resp = await this.#client.request(FEDERATED_SCHEMA_QUERY, {
+        "afterVersion": this.#currentSchemaVersion,
+      })
+
+      switch (resp?.registry?.federatedSchema?.status) {
+        case "unchanged":
+          console.debug(`InigoSchemaManager: no new schema available.`)
+          return
+        case "updated":
+          console.log(`InigoSchemaManager: new schema v${resp.registry.federatedSchema.version} pulled.`)
+
+          this.#currentSchemaVersion = resp.registry.federatedSchema.version
+          return resp.registry.federatedSchema.schema;
+        case "missing":
+          throw new Error("schema is not available in the registry")
+        default:
+          throw new Error(`unknown or missing status`)
+      }
+    } catch (err) {
+      throw Error(`
+InigoSchemaManager: schema fetch failed. Current schema ${this.#currentSchemaVersion} is kept.
+
+Error: ${err}
+`)
+    }
+  }
+}
+
 exports.countResponseFields = countResponseFields;
 exports.InigoFetchGatewayInfo = InigoFetchGatewayInfo;
+exports.InigoSchemaManager = InigoSchemaManager;
 exports.InigoRemoteDataSource = InigoRemoteDataSource;
 exports.InigoConfig = InigoConfig;
 exports.InigoPlugin = InigoPlugin;

@@ -1,6 +1,6 @@
 import { GraphQLDataSourceProcessOptions } from "@apollo/gateway/dist/datasources/types";
 import { GatewayGraphQLRequestContext, GatewayGraphQLResponse } from "@apollo/server-gateway-interface";
-import { ServiceEndpointDefinition, RemoteGraphQLDataSource } from "@apollo/gateway";
+import { ServiceEndpointDefinition, RemoteGraphQLDataSource, SupergraphManager, SupergraphSdlHook } from "@apollo/gateway";
 
 declare class Config {
   Debug?: boolean;
@@ -59,4 +59,33 @@ export class InigoRemoteDataSource extends RemoteGraphQLDataSource {
 
   onBeforeSendRequest?(options: GraphQLDataSourceProcessOptions): void | Promise<void>;
   onAfterReceiveResponse?(requestContext: Required<Pick<GatewayGraphQLRequestContext, 'request' | 'response' | 'context'>>): GatewayGraphQLResponse | Promise<GatewayGraphQLResponse>;
+}
+
+export enum InigoSchemaStatus {
+  missing = "missing",
+  unchanged = "unchanged",
+  updated = "updated",
+}
+
+export type FetchFederationSchemaResponse = {
+  registry: {
+    federatedSchema: {
+      status: InigoSchemaStatus,
+      version: number,
+      schema?: string,
+    }
+  }
+}
+
+export type InigoSchemaManagerOnInitError = (error: Error) => Promise<string>;
+export type InigoSchemaManagerParams = {
+  token?: string,
+  endpoint?: string,
+  onInitError?: InigoSchemaManagerOnInitError,
+}
+
+export class InigoSchemaManager implements SupergraphManager {
+  constructor(params?: InigoSchemaManagerParams);
+
+  initialize: SupergraphSdlHook;
 }
