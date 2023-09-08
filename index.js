@@ -662,7 +662,7 @@ function countResponseFields(resp) {
 }
 
 function countResponseFieldsRecursive(hm, prefix, val) {
-  if (val instanceof Object === false) {
+  if (typeof val !== "object") {
     return;
   }
 
