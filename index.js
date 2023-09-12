@@ -784,7 +784,7 @@ It can be provided either via INIGO_SERVICE_TOKEN env var, or as a InigoSchemaMa
 
       switch (resp?.registry?.federatedSchema?.status) {
         case "unchanged":
-          console.debug(`InigoSchemaManager: no new schema available.`)
+            // newer schema is not available
           return
         case "updated":
           console.log(`InigoSchemaManager: new schema v${resp.registry.federatedSchema.version} pulled.`)
