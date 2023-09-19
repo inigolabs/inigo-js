@@ -2,7 +2,7 @@ const { Library } = require("@inigolabs/ffi-napi");
 const ref = require("@inigolabs/ref-napi");
 const struct = require("ref-struct-di")(ref);
 const { resolve } = require("path");
-const { buildSchema, introspectionFromSchema, printSchema, parse, getOperationAST } = require("graphql");
+const { printSchema, parse, getOperationAST } = require("graphql");
 const { GraphQLClient, gql } = require("graphql-request");
 const { RemoteGraphQLDataSource } = require("@apollo/gateway");
 const fs = require("fs");
@@ -16,11 +16,11 @@ const _void_ = ref.types.void;
 
 const InigoConfig = struct({
   Debug: bool,
-  Ingest: string,
+  Name: string,
   Service: string,
   Token: string,
   Schema: string,
-  Introspection: string,
+  Runtime: string,
   EgressUrl: string,
   Gateway: uint64,
   DisableResponseData: bool,
@@ -83,11 +83,6 @@ class Inigo {
   #instance = 0;
 
   constructor(config) {
-    // Get introspection schema
-    if (config.Schema !== null) {
-      config.Introspection = `{ "data": ${JSON.stringify(introspectionFromSchema(buildSchema(config.Schema)))} }`
-    }
-
     this.#instance = ffi.create(config.ref());
     const err = ffi.check_lasterror();
     if (err != "") {
@@ -228,6 +223,9 @@ function InigoPlugin(config) {
       DisableResponseData: true,
     })
   }
+
+  config.Name = "inigo-js";
+  config.Runtime = "node" + process.version.match(/\d+\.\d+/)[0];
 
   // rootInigoInstance is a singleton
   if (rootInigoInstance !== 0) {
