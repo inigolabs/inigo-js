@@ -3,6 +3,7 @@
   "version": "0.27.8",
   "description": "GraphQL Middleware",
   "main": "index.js",
+  "keywords": ["graphql", "apollo", "security", "rate limiting", "analytics", "schema", "gateway", "access control", "composition", "alerts"],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
