@@ -6,6 +6,7 @@ const { printSchema, parse, getOperationAST } = require("graphql");
 const { GraphQLClient, gql } = require("graphql-request");
 const { RemoteGraphQLDataSource } = require("@apollo/gateway");
 const fs = require("fs");
+const { v4: uuidv4 } = require('uuid');
 
 const pointer = "pointer";
 const string = ref.types.CString;
@@ -275,17 +276,17 @@ class Inigo {
     return this.#instance;
   }
 
-  plugin() {
+  plugin(config = { trace_header: "Inigo-Router-TraceID" }) {
     if (this.#instance === undefined || this.#instance.instance() === 0) {
       console.warn("InigoPlugin: Inigo instance is not found")
       return {} // it's required to return empty handlers
     }
 
-    return plugin(this.#instance, this.#listenForSchema)
+    return plugin(this.#instance, this.#listenForSchema, config);
   }
 }
 
-function plugin(inigo, listenForSchema) {
+function plugin(inigo, listenForSchema, config) {
 
   const serverWillStart = async function({ apollo, schema, logger }) {
     const schemaDidLoadOrUpdate = function ({ apiSchema, coreSupergraphSdl }) {
@@ -354,6 +355,12 @@ function plugin(inigo, listenForSchema) {
           // Create request context, for storing blocked status
           if (ctx[ctxKey].inigo === undefined) {
             ctx[ctxKey].inigo = { blocked: false };
+          }
+
+          ctx[ctxKey].inigo.trace_header = config.trace_header;
+
+          if (!ctx.request.http.headers.get(config.trace_header)) {
+            ctx.request.http.headers.set(config.trace_header, uuidv4());
           }
 
           // process request
@@ -547,6 +554,13 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       variables: request.variables,
     });
     query.setSubgraphName(this.name)
+
+    let ctxKey = getCtxKey(incomingRequestContext);
+    let trace_header = incomingRequestContext[ctxKey].inigo.trace_header;
+    let traceid = incomingRequestContext.request.http.headers.get(trace_header)
+    if (traceid){
+      request.http.headers.set(trace_header, traceid);
+    }
 
     // note: incomingRequestContext is undefined while IntrospectAndCompose is executed (bd it's not incoming request, it's internal)
     let traceparent = incomingRequestContext?.request.http.headers.get("traceparent")
