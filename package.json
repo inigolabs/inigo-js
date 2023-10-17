@@ -29,7 +29,8 @@
     "@inigolabs/ref-napi": "^4.0.6",
     "graphql": "^16.6.0",
     "graphql-request": "^5.1.0",
-    "ref-struct-di": "^1.1.1"
+    "ref-struct-di": "^1.1.1",
+    "uuid": "^9.0.1"
   },
   "homepage": "https://github.com/inigolabs/inigo-js",
   "repository": {
