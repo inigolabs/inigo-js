@@ -3,12 +3,9 @@ import { GatewayGraphQLRequestContext, GatewayGraphQLResponse } from "@apollo/se
 import { ServiceEndpointDefinition, RemoteGraphQLDataSource, SupergraphManager, SupergraphSdlHook } from "@apollo/gateway";
 
 declare class Config {
-  Debug?: boolean;
-  Ingest?: string;
-  Service?: string;
+  Disabled?: boolean;
   Token?: string;
   Schema?: string;
-  EgressUrl?: string;
 }
 
 export class InigoConfig extends Config {
