@@ -19,7 +19,6 @@ const data = parse(readFileSync(resolve(cwd, "data/starwars_data.yaml"), "utf-8"
 const inigoCfg = new InigoConfig({
   Token: INIGO_SERVICE_TOKEN,
   Schema: typeDefs,
-  DisableResponseData: true,
 });
 
 const server = new ApolloServer({

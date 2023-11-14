@@ -230,21 +230,38 @@ class Inigo {
   #instance;
   #listenForSchema = false;
 
-  constructor(config) {
+  constructor(cfg) {
     if (process.env.INIGO_ENABLE === "false") {
       return
     }
 
-    if (!config) {
-      // if config is not provided, create new one with the token from env var
-      config = new InigoConfig({
-        Token: process.env.INIGO_SERVICE_TOKEN,
-        DisableResponseData: true,
-      })
+    if (cfg?.Disabled) {
+      return
     }
 
-    config.Name = "inigo-js";
-    config.Runtime = "node" + process.version.match(/\d+\.\d+/)[0];
+    // create internal configuration object
+    const config = new InigoConfig({
+      Name: "inigo-js",
+      Runtime: "node" + process.version.match(/\d+\.\d+/)[0],
+      Token: process.env.INIGO_SERVICE_TOKEN,
+      DisableResponseData: true,
+    })
+
+    // pass token if provided
+    if (cfg?.Token && typeof cfg?.Token === "string") {
+      config.Token = cfg.Token // programmatically provided token overrides env var
+    } else if (cfg?.Token !== undefined) {
+      console.error("inigo-js: token should be a string.")
+      process.exit()
+    }
+
+    // pass schema if provided
+    if (cfg?.Schema && typeof cfg?.Schema === "string") {
+      config.Schema = cfg.Schema // statically provided schema. If not provided here, Inigo will subscribe on apollo-server schema update callback
+    } else if (cfg?.Schema !== undefined) {
+      console.error("inigo-js: schema should be a string.")
+      process.exit()
+    }
 
     this.#listenForSchema = config.Schema === null
     this.#instance = new InigoInstance(config);
@@ -259,7 +276,7 @@ class Inigo {
   }
 
   plugin() {
-    if (this.#instance === 0) {
+    if (this.#instance === undefined || this.#instance.instance() === 0) {
       console.warn("InigoPlugin: Inigo instance is not found")
       return {} // it's required to return empty handlers
     }
@@ -288,7 +305,9 @@ function plugin(inigo, listenForSchema) {
 
     const handlers = {
       serverWillStop: async () => {
-        await inigo.shutdown()
+        if (inigo instanceof Inigo) {
+          await inigo.shutdown()
+        }
       }
     }
 
@@ -529,7 +548,8 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
     });
     query.setSubgraphName(this.name)
 
-    let traceparent = incomingRequestContext.request.http.headers.get("traceparent")
+    // note: incomingRequestContext is undefined while IntrospectAndCompose is executed (bd it's not incoming request, it's internal)
+    let traceparent = incomingRequestContext?.request.http.headers.get("traceparent")
     if (traceparent){
       request.http.headers.set('traceparent', traceparent);
     }
@@ -579,7 +599,8 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       }
     }
 
-    if (this.#instance !== 0) {
+    // process request if Inigo is enabled and instance is created
+    if (this.#instance && this.#instance?.instance() !== 0) {
       await this.processRequest(options)
     }
   }
