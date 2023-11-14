@@ -1,9 +1,20 @@
 {
   "name": "inigo.js",
-  "version": "0.27.8",
+  "version": "0.28.6",
   "description": "Inigo's middleware integration offers GraphQL Security, Analytics, Rate-limiting, Access Contorl and more.",
   "main": "index.js",
-  "keywords": ["graphql", "apollo", "security", "rate limiting", "analytics", "schema", "gateway", "access control", "composition", "alerts"],
+  "keywords": [
+    "graphql",
+    "apollo",
+    "security",
+    "rate limiting",
+    "analytics",
+    "schema",
+    "gateway",
+    "access control",
+    "composition",
+    "alerts"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
