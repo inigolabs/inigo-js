@@ -25,6 +25,7 @@
   "license": "MIT",
   "dependencies": {
     "@apollo/gateway": "^2.3.2",
+    "@envelop/core": "^5.0.0",
     "@inigolabs/ffi-napi": "^4.0.10",
     "@inigolabs/ref-napi": "^4.0.6",
     "graphql": "^16.6.0",

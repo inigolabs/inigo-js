@@ -1,0 +1,32 @@
+{
+  "name": "yoga-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cross-env INIGO_SERVICE_SUBSCRIPTION_ENABLED=true INIGO_SERVICE_URL=http://localhost:30018/query INIGO_STORAGE_URL=http://localhost:30020/query NODE_ENV=development ts-node-dev --exit-child --respawn src/main.ts",
+    "start": "ts-node src/main.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "20.10.5",
+    "cross-env": "7.0.3",
+    "ts-node": "10.9.2",
+    "ts-node-dev": "2.0.0",
+    "typescript": "5.3.3"
+  },
+  "dependencies": {
+    "@graphql-tools/schema": "^10.0.2",
+    "graphql": "^16.8.1",
+    "graphql-yoga": "5.1.0",
+    "inigo-linux-amd64": "latest",
+    "inigo-linux-arm64": "latest",
+    "inigo-darwin-amd64": "latest",
+    "inigo-darwin-arm64": "latest",
+    "inigo-windows-amd64": "latest",
+    "inigo-windows-arm64": "latest",
+    "inigo.js": "latest"
+  }
+}
