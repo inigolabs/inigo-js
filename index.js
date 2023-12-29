@@ -7,6 +7,7 @@ const { GraphQLClient, gql } = require("graphql-request");
 const { RemoteGraphQLDataSource } = require("@apollo/gateway");
 const fs = require("fs");
 const { v4: uuidv4 } = require('uuid');
+const envelop = require("@envelop/core");
 
 const pointer = "pointer";
 const string = ref.types.CString;
@@ -79,6 +80,7 @@ const ffi = Library(libraryPath, {
   update_schema: [ bool, [ uint64, string, int ] ],
   check_lasterror: [ string, [] ],
   shutdown: [ _void_, [ uint64 ] ],
+  copy_querydata: [ uint64, [ uint64 ] ],
 });
 
 class InigoInstance {
@@ -100,6 +102,10 @@ class InigoInstance {
 
   newQuery(query) {
     return new Query(this.#instance, query);
+  }
+
+  copyQuerydata(data) {
+    return ffi.copy_querydata(data);
   }
 
   instance() {
@@ -137,6 +143,10 @@ class Query {
 
   handle() {
     return this.#handle
+  }
+
+  setHandle(val) {
+    this.#handle = val
   }
 
   processRequest(headers) {
@@ -835,6 +845,93 @@ Error: ${err}
   }
 }
 
+const YogaInigoPlugin = (token, schema) => {
+  const instance = new InigoInstance(
+    new InigoConfig({
+      Token: token,
+      Schema: schema,
+      DisableResponseData: true,
+    }),
+  );
+  if (instance.instance() === 0) {
+    console.error("inigo-js: error, instance could not be created.");
+    return {};
+  }
+
+  return {
+    onExecute(args) {
+      const query = instance.newQuery(args.args.contextValue.params);
+
+      const newHeaders = new Map();
+      const headers = args.args.contextValue.req.rawHeaders;
+      for (const [key] of headers.entries()) {
+        if (key % 2 === 0) {
+          newHeaders.set(headers[key], headers[key + 1]);
+        }
+      }
+
+      const { response } = query.processRequest(newHeaders);
+      if (response) {
+        args.setResultAndStopExecution(response);
+        return {};
+      }
+
+      return {
+        onExecuteDone({ result, setResult }) {
+          setResult(modResponse(
+            result,
+            query.processResponse(JSON.stringify({
+              errors: result.errors,
+              response_size: 0,
+              response_body_counts: countResponseFields(result),
+            })),
+          ));
+        },
+      };
+    },
+    onSubscribe(args) {
+      const query = instance.newQuery(args.args.contextValue.params);
+
+      const newHeaders = new Map();
+      const headers = args.args.contextValue.req.rawHeaders;
+      for (const [key] of headers.entries()) {
+        if (key % 2 === 0) {
+          newHeaders.set(headers[key], headers[key + 1]);
+        }
+      }
+
+      const { response } = query.processRequest(newHeaders);
+      if (response) {
+        args.setResultAndStopExecution(response);
+        return {};
+      }
+
+      const handle = query.handle();
+
+      return {
+        onSubscribeResult(payload) {
+          return envelop.handleStreamOrSingleExecutionResult(
+            payload,
+            ({ result, setResult }) => {
+              query.setHandle(instance.copyQuerydata(handle));
+              setResult(
+                modResponse(
+                  result,
+                  query.processResponse(JSON.stringify({
+                    errors: result.errors,
+                    response_size: 0,
+                    response_body_counts: countResponseFields(result),
+                  })),
+                ),
+              );
+            },
+          );
+        },
+      };
+    },
+  };
+};
+
 exports.countResponseFields = countResponseFields;
 exports.InigoFetchGatewayInfo = InigoFetchGatewayInfo;
 exports.InigoSchemaManager = InigoSchemaManager;
@@ -843,3 +940,4 @@ exports.InigoConfig = InigoConfig;
 exports.InigoPlugin = InigoPlugin;
 exports.Inigo = Inigo;
 exports.version = version;
+exports.YogaInigoPlugin = YogaInigoPlugin;
