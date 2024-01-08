@@ -548,6 +548,9 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
   }
 
   async processRequest({ request, context, incomingRequestContext }) {
+    console.error("===============================")
+    console.error(incomingRequestContext)
+    console.error("===============================")
     let query = this.#instance.newQuery({
       query: request.query,
       operationName: request.operationName || incomingRequestContext?.operationName,
