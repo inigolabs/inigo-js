@@ -350,6 +350,7 @@ function plugin(inigo, listenForSchema, config) {
             query: ctx.source,
             operationName: ctx.request.operationName,
             variables: ctx.request.variables,
+            extensions: ctx.request.extensions || {},
           });
 
           // Create request context, for storing blocked status
@@ -552,6 +553,7 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       query: request.query,
       operationName: request.operationName || incomingRequestContext?.operationName,
       variables: request.variables,
+      extensions: request.extensions || {},
     });
     query.setSubgraphName(this.name)
 
