@@ -8,6 +8,7 @@ const { RemoteGraphQLDataSource } = require("@apollo/gateway");
 const fs = require("fs");
 const { v4: uuidv4 } = require('uuid');
 const envelop = require("@envelop/core");
+const {GraphQLError} = require("graphql/error");
 
 const pointer = "pointer";
 const string = ref.types.CString;
@@ -81,6 +82,16 @@ const ffi = Library(libraryPath, {
   check_lasterror: [ string, [] ],
   shutdown: [ _void_, [ uint64 ] ],
   copy_querydata: [ uint64, [ uint64 ] ],
+  is_persisting_enabled: [ bool, [ uint64 ] ],
+  resolve_persisted_operation: [ _void_,
+    [
+      uint64, // request handle
+      pointer, int, // header
+      pointer, int, // query
+      ref.refType(pointer), ref.refType(int), // response
+      ref.refType(pointer), ref.refType(int), // request
+    ],
+  ],
 });
 
 class InigoInstance {
@@ -115,6 +126,55 @@ class InigoInstance {
   updateSchema(schema) {
     const buf = Buffer.from(schema)
     ffi.update_schema(this.#instance, buf, buf.length)
+  }
+
+  isPersistingEnabled() {
+    return ffi.is_persisting_enabled(this.#instance)
+  }
+
+  resolvePersistedRequest(headers, input) {
+    const request_input = Buffer.from(input);
+    const resp_ptr = ref.alloc(ref.refType(pointer));
+    const resp_len_ptr = ref.alloc(int);
+
+    const req_ptr = ref.alloc(ref.refType(pointer));
+    const req_len_ptr = ref.alloc(int);
+
+    const newHeaders = {};
+
+    for (const [key, value] of headers.entries()) {
+      newHeaders[key] =  value.split(',').map((v) => v.trimStart());
+    }
+
+    const headersBuf = Buffer.from(JSON.stringify(newHeaders));
+
+    ffi.resolve_persisted_operation(
+        this.#instance,
+        headersBuf,
+        headersBuf.length,
+        request_input,
+        request_input.length,
+        resp_ptr,
+        resp_len_ptr,
+        req_ptr,
+        req_len_ptr
+    );
+
+    let response = null;
+    let request = null;
+
+    if (resp_len_ptr.deref() > 0) {
+      response = JSON.parse(ref.readPointer(resp_ptr, 0, resp_len_ptr.deref()));
+    }
+
+    if (req_len_ptr.deref() > 0) {
+      request = JSON.parse(ref.readPointer(req_ptr, 0, req_len_ptr.deref()));
+    }
+
+    ffi.disposeMemory(resp_ptr.deref())
+    ffi.disposeMemory(req_ptr.deref())
+
+    return { response, request };
   }
 
   shutdown(){
@@ -347,6 +407,71 @@ function plugin(inigo, listenForSchema, config) {
 
       let query; // instance of the Inigo query
       let response; // optional. If request was blocked by Inigo.
+      let registryProcessed = false;
+
+      // if persisting enabled and it is not APQ request - proceed to query processing
+      if (inigo.isPersistingEnabled() && !requestContext.request.extensions?.persistedQuery) {
+        registryProcessed = true
+
+        // create Inigo query and store in a closure
+        // at this stage APQ is not resolved query yet so only passed in query will work
+        query = inigo.newQuery({
+          query: requestContext.request.query || "",
+          operationName: requestContext.request.operationName,
+          variables: requestContext.request.variables || {},
+          extensions: requestContext.request.extensions || {},
+        });
+
+        // Create request context, for storing blocked status
+        if (requestContext[ctxKey].inigo === undefined) {
+          requestContext[ctxKey].inigo = { blocked: false };
+        }
+
+        requestContext[ctxKey].inigo.trace_header = config.trace_header;
+
+        if (!requestContext.request.http.headers.get(config.trace_header)) {
+          requestContext.request.http.headers.set(config.trace_header, uuidv4());
+        }
+
+        // process request
+        const processed = query.processRequest(requestContext.request.http.headers);
+        console.log(processed)
+
+        if (processed?.response != null) {
+          response = processed.response
+          // dummy query to bypass APQ/empty query check.
+          // response is already generated to prevent request from being processed by server.
+          requestContext.request.query = 'query IntrospectionQuery { __schema { queryType { name } } }'
+        }
+
+        // request query has been mutated
+        if (processed?.request != null) {
+          // Get the structure from your plugin
+          const { query, variables, extensions, operationName } = processed.request;
+
+          if (processed.request.extensions && processed.request.extensions.traceparent) {
+            requestContext.request.http.headers.set('traceparent', processed.request.extensions.traceparent);
+          }
+
+          // override already parsed variables
+          requestContext.request.operationName = operationName
+          requestContext.request.query = query
+          requestContext.request.variables = variables
+          requestContext.request.extensions = extensions
+
+          // Check if it's a POST request
+          if (requestContext.request.http.method === 'POST') {
+            // Overwrite the request body with the new structure
+            // TODO - body is empty at the requestDidStart stage. Not sure if we have to override it...
+            // requestContext.request.http.body = JSON.stringify({ query, variables, extensions, operationName });
+          } else if (requestContext.request.http.method === 'GET') {
+            // Overwrite the request parameters with the new structure
+            const url = requestContext.request.http.url.split('?')[0];
+            const newParams = new URLSearchParams({ query, variables, extensions, operationName }).toString();
+            requestContext.request.http.url = `${url}?${newParams}`;
+          }
+        }
+      }
 
       return {
         // didResolveOperation callback is invoked after server has determined the string representation of the query.
@@ -354,6 +479,12 @@ function plugin(inigo, listenForSchema, config) {
         // query string is retrieved from cache by the hash.
         // Also, it's not triggered on the first APQ, when client sends query hash, but server cannot retrieve it.
         didResolveOperation(ctx) {
+          // query was already processed at the persisted storage step resolver
+          if (registryProcessed) {
+            console.log("query already processed. skipping this one.")
+            return;
+          }
+
           // create Inigo query and store in a closure
           // ctx.source always holds the string representation of the query, in case of regular request or APQ
           query = inigo.newQuery({
@@ -402,10 +533,12 @@ function plugin(inigo, listenForSchema, config) {
         responseForOperation(opCtx) {
           // response was provided by Inigo.
           if (response === undefined) {
+            console.log("response is already generated.")
             return
           }
 
           if (ctxKey === "context") { // v2,v3
+            console.log("ctxKey is context.")
             return response
           }
 
@@ -426,11 +559,13 @@ function plugin(inigo, listenForSchema, config) {
           // query was not processed by Inigo.
           // Ex.: first APQ query (only query hash comes, server cannot resolve hash to string)
           if (query === undefined) {
+            console.log("willSendResponse query is empty.")
             return
           }
 
           // response was provided by Inigo.
           if (response !== undefined) {
+            console.log("willSendResponse response is not empty.")
             return
           }
 
@@ -451,7 +586,7 @@ function plugin(inigo, listenForSchema, config) {
           setResponse(respContext, modResponse(resp, processed));
          }
       };
-    }
+    },
   }
 
   handlers.serverWillStart = serverWillStart
