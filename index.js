@@ -845,14 +845,23 @@ Error: ${err}
   }
 }
 
-const YogaInigoPlugin = (token, schema) => {
-  const instance = new InigoInstance(
-    new InigoConfig({
-      Token: token,
-      Schema: schema,
-      DisableResponseData: true,
-    }),
-  );
+const YogaInigoPlugin = (config) => {
+  if (!config?.Schema) {
+    console.error("inigo-js: error, schema was not provided.");
+    return {};
+  }
+
+  let cfg = new InigoConfig({
+    Token: process.env.INIGO_SERVICE_TOKEN,
+    Schema: config.Schema,
+    DisableResponseData: true,
+  });
+
+  if (config?.Token && typeof config?.Token === "string") {
+    cfg.Token = config.Token;
+  }
+
+  const instance = new InigoInstance(cfg);
   if (instance.instance() === 0) {
     console.error("inigo-js: error, instance could not be created.");
     return {};

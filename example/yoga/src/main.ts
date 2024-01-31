@@ -42,7 +42,7 @@ const token = "your-inigo-token";
 function main() {
   const yoga = createYoga({
     schema,
-    plugins: [YogaInigoPlugin(token, typeDefinitions)],
+    plugins: [YogaInigoPlugin({ Token: token, Schema: typeDefinitions })],
   });
   const server = createServer(yoga);
   server.listen(4000, () => {
