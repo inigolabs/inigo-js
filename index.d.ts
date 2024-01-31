@@ -14,7 +14,7 @@ export class InigoConfig extends Config {
 
 export function InigoPlugin(config?: Config): any;
 
-export function YogaInigoPlugin(token: string, schema: string): any;
+export function YogaInigoPlugin(config?: Config): any;
 
 interface InigoError {
   message: string;
