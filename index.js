@@ -511,34 +511,23 @@ async function InigoFetchGatewayInfo(token) {
   })
 }
 
-class InigoRemoteDataSource extends RemoteGraphQLDataSource {
+const InigoDataSourceMixin = (superclass, inigo) => class extends superclass {
   #instance = null
 
-  constructor({name, url}, inigo) {
-    super();
-
-    if (!name) {
-      throw new Error("Name of the subgraph service should be provided to InigoRemoteDataSource.")
-    }
-
-    if (Object.getPrototypeOf(this).hasOwnProperty("willSendRequest") ||
-        Object.getPrototypeOf(this).hasOwnProperty("didReceiveResponse")) {
-
-      throw new Error(`
-      inigo.js : InigoRemoteDataSource
-      
-      Methods 'willSendRequest' and 'didReceiveResponse' cannot be overwritten.
-      Use 'onBeforeSendRequest' and 'onAfterReceiveResponse' respectively.
-      
-      `)
-    }
-
-    this.name = name
-    this.url = url
+  constructor(...args) {
+    super(...args);
 
     if (inigo instanceof Inigo) {
       this.#instance = inigo.instance();
-    } else {
+    }
+
+    // backwards compatibility, when InigoRemoteDataSource is used as a base class and Inigo instance is provided as
+    // a second argument
+    if (args.length === 2 && args[1] instanceof Inigo) {
+      this.#instance = args[1].instance();
+    }
+
+    if (this.#instance === null) {
       throw new Error(`
       inigo.js : InigoRemoteDataSource
       
@@ -559,6 +548,15 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
   }
 
   async processRequest({ request, context, incomingRequestContext }) {
+    if (incomingRequestContext === undefined) { // internal request, ex.: IntrospectAndCompose is used
+      return
+    }
+
+    if (this.#instance?.instance() === 0) {
+      console.error("inigo.js: Inigo instance is not found")
+      return
+    }
+
     let query = this.#instance.newQuery({
       query: request.query,
       operationName: request.operationName || incomingRequestContext?.operationName,
@@ -621,14 +619,26 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
       try {
         await this.onBeforeSendRequest(options);
       } catch (e) {
-        console.error(`${this.name}: onBeforeSendRequest callback error. Error: ${e}`)
+        console.error(`inigo.js: ${super.name}: onBeforeSendRequest callback error. Error: ${e}`)
       }
     }
 
-    // process request if Inigo is enabled and instance is created
-    if (this.#instance && this.#instance?.instance() !== 0) {
-      await this.processRequest(options)
+    // execute customers callback if defined
+    if (typeof super.willSendRequest === 'function') {
+      try {
+        await super.willSendRequest(options);
+      } catch (e) {
+        console.error(`inigo.js: ${super.name}: willSendRequest callback error. Error: ${e}`)
+      }
     }
+
+    if (this.#instance?.instance() === 0) {
+      console.error("inigo.js: Inigo instance is not found")
+      return
+    }
+
+    // process request if Inigo is enabled and instance is created
+    await this.processRequest(options)
   }
 
   // implements the method from RemoteGraphQLDataSource class
@@ -643,7 +653,17 @@ class InigoRemoteDataSource extends RemoteGraphQLDataSource {
         const updatedResp = await this.onAfterReceiveResponse({ response, request, context });
         response = updatedResp || response; // use updatedResp if returned
       } catch (e) {
-        console.error(`${this.name}: onAfterReceiveResponse callback error. Error: ${e}`)
+        console.error(`inigo.js: ${super.name}: onAfterReceiveResponse callback error. Error: ${e}`)
+      }
+    }
+
+    // execute customers callback if defined, before processing response by Inigo
+    if (typeof super.didReceiveResponse === 'function') {
+      try {
+        const updatedResp = await super.didReceiveResponse({ response, request, context });
+        response = updatedResp || response; // use updatedResp if returned
+      } catch (e) {
+        console.error(`inigo.js: ${super.name}: didReceiveResponse callback error. Error: ${e}`)
       }
     }
 
@@ -944,7 +964,8 @@ const YogaInigoPlugin = (config) => {
 exports.countResponseFields = countResponseFields;
 exports.InigoFetchGatewayInfo = InigoFetchGatewayInfo;
 exports.InigoSchemaManager = InigoSchemaManager;
-exports.InigoRemoteDataSource = InigoRemoteDataSource;
+exports.InigoDataSourceMixin = InigoDataSourceMixin;
+exports.InigoRemoteDataSource = InigoDataSourceMixin(RemoteGraphQLDataSource);
 exports.InigoConfig = InigoConfig;
 exports.InigoPlugin = InigoPlugin;
 exports.Inigo = Inigo;
