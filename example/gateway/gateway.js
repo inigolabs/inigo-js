@@ -20,7 +20,7 @@ const supergraphSdl = new IntrospectAndCompose({
 // INIGO: Signatures of callbacks are same.
 class CustomRemoteDataSource extends InigoRemoteDataSource {
   async onBeforeSendRequest({ request, context }) {
-    if (context.req && context.req.headers) {
+    if (context && context.req && context.req.headers) {
       // pass all headers to subgraph
       Object.keys(context.headers || []).forEach(key => {
         if (context.headers[key]) {
@@ -53,6 +53,14 @@ function logHeadersAndOpPlugin() {
   const gateway = new ApolloGateway({
     supergraphSdl: supergraphSdl,
     buildService(service) {
+      // ways to provide RemoteDataSource with Inigo:
+      // 1. use InigoRemoteDataSource only when no custom logic is needed for the data source
+      // - new InigoRemoteDataSource(service, inigo)
+      // 2. implement a class that extends InigoRemoteDataSource when there's a need to add logic before or after sending subgraph request
+      // - new CustomRemoteDataSource(service, inigo)
+      // 3. use InigoDataSourceMixin when there's a need for a custom data source (when default RemoteGraphQLDataSource provided by Apollo cannot be used)
+      // - new (InigoDataSourceMixin(MyDataSource, inigo))(service)
+
       return new CustomRemoteDataSource(service, inigo) // INIGO: this is required to get sub-graph visibility.
     }
   })
