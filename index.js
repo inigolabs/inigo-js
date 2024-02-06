@@ -683,7 +683,7 @@ const InigoDataSourceMixin = (superclass, inigo) => class extends superclass {
 }
 
 function modResponse(response, extended) {
-  if (extended.extensions){
+  if (extended?.extensions){
     if (!response.extensions){
       response.extensions = {}
     }
@@ -693,7 +693,7 @@ function modResponse(response, extended) {
     }
   }
 
-  if (extended.errors){
+  if (extended?.errors){
     if (!response.errors){
       response.errors = []
     }
