@@ -159,8 +159,10 @@ class Query {
 
     const newHeaders = {};
 
-    for (const [key, value] of headers.entries()) {
-      newHeaders[key] =  value.split(',').map((v) => v.trimStart());
+    if (headers !== undefined) {
+      for (const [key, value] of headers.entries()) {
+        newHeaders[key] =  value.split(',').map((v) => v.trimStart());
+      }
     }
 
     const headersBuf = Buffer.from(JSON.stringify(newHeaders));
@@ -370,12 +372,12 @@ function plugin(inigo, listenForSchema, config) {
 
           ctx[ctxKey].inigo.trace_header = config.trace_header;
 
-          if (!ctx.request.http.headers.get(config.trace_header)) {
+          if (ctx.request.http && ctx.request.http.headers && !ctx.request.http.headers.get(config.trace_header)) {
             ctx.request.http.headers.set(config.trace_header, uuidv4());
           }
 
           // process request
-          const processed = query.processRequest(ctx.request.http.headers);
+          const processed = query.processRequest(ctx.request.http?.headers);
 
           if (processed?.response != null) {
             response = processed.response
@@ -389,7 +391,7 @@ function plugin(inigo, listenForSchema, config) {
             ctx.request.operationName = processed.request.operationName;
             ctx.request.variables = processed.request.variables;
 
-            if (processed.request.extensions && processed.request.extensions.traceparent) {
+            if (ctx.request.http && ctx.request.http.headers && processed.request.extensions && processed.request.extensions.traceparent) {
               ctx.request.http.headers.set('traceparent', processed.request.extensions.traceparent);
             }
 
@@ -567,18 +569,18 @@ const InigoDataSourceMixin = (superclass, inigo) => class extends superclass {
 
     let ctxKey = getCtxKey(incomingRequestContext);
     let trace_header = incomingRequestContext[ctxKey].inigo.trace_header;
-    let traceid = incomingRequestContext.request.http.headers.get(trace_header)
+    let traceid = incomingRequestContext.request.http?.headers.get(trace_header)
     if (traceid){
       request.http.headers.set(trace_header, traceid);
     }
 
     // note: incomingRequestContext is undefined while IntrospectAndCompose is executed (bd it's not incoming request, it's internal)
-    let traceparent = incomingRequestContext?.request.http.headers.get("traceparent")
+    let traceparent = incomingRequestContext?.request.http?.headers.get("traceparent")
     if (traceparent){
       request.http.headers.set('traceparent', traceparent);
     }
 
-    const processed = query.processRequest(request.http.headers);
+    const processed = query.processRequest(request.http?.headers);
 
     // handle case if invalid subgraph name is passed
     if (query.handle() === 0) {
@@ -605,7 +607,7 @@ const InigoDataSourceMixin = (superclass, inigo) => class extends superclass {
       request.operationName = processed.request.operationName;
       request.variables = processed.request.variables;
 
-      if (processed.request.extensions && processed.request.extensions.traceparent){
+      if (request.http && request.http.headers && processed.request.extensions && processed.request.extensions.traceparent){
         request.http.headers.set('traceparent', processed.request.extensions.traceparent);
       }
     }

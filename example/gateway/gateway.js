@@ -76,5 +76,21 @@ function logHeadersAndOpPlugin() {
     context: async ({ req }) => ({ req }),
   });
 
+  // example of internal healthcheck query
+  let resp = await server.executeOperation({query: "query Healthcheck { __typename }"})
+  console.log(resp.body.singleResult)
+
+  // example of internal query that hits subgraphs
+  resp = await server.executeOperation({query: `query Internal {
+  me {
+    name
+    reviews {
+      body
+    }
+  }
+}
+`})
+  console.log(resp.body.singleResult)
+
   console.log(`🚀 Server ready at ${url}`);
 })()
