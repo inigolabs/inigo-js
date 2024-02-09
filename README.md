@@ -4,32 +4,31 @@
   <img src="https://raw.githubusercontent.com/inigolabs/inigo-js/master/docs/js.svg">
 
   <p align="center">
-    Inigo GraphQL Middleware for Apollo Server and Gateway
+    GraphQL for Platform Teams
     <br />
-    <!-- <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a> <br /> <br />  -->
-    <a href="https://inigo.io">Homepage</a>
+    <a href="https://inigo.io">Home</a>
     ·
-    <a href="https://github.com/inigolabs/inigo-js/tree/master/example">View an example</a>
+    <a href="https://docs.inigo.io/">Docs</a>
     ·
-    <a href="https://github.com/inigolabs/inigo-js/issues">Report Bug</a>
+    <a href="https://github.com/inigolabs/inigo-js/issues">Issues</a>
+    ·
+    <a href="https://slack.inigo.io/">Slack</a>
   </p>
 </div>
 
 ### Overview
+Gain instant monitoring and protection into GraphQL APIs. Unblock platform teams and accelerate GraphQL adoption.
+Inigo's platform integration offers GraphQL Security, Analytics, Rate-limiting, Access Control and more.  
 
-Inigo's middleware integration offers GraphQL Security, Analytics, Rate-limiting, Access Contorl and more.  
-
-This package is the Inigo plugin for Apollo and Gateway.
+This package includes the Inigo middleware plugin for Yoga, Apollo Server and Apollo Gateway.
 
 ### Documentation
-
-Documentation is available here: 
-* [Getting Started](https://docs.inigo.io/)
-* [Apollo Server](https://docs.inigo.io/deployment/javascript_apollo_plugin)
-* [Apollo Gateway](https://docs.inigo.io/deployment/javascript_apollo_gateway)
+* [Docs](https://docs.inigo.io/)
+* [Example](https://github.com/inigolabs/inigo-js/tree/master/example)
+* [Apollo](https://docs.inigo.io/product/agent_installation/javascript_apollo_plugin)
+* [Yoga](https://docs.inigo.io/product/agent_installation/yoga)
 
 ### Contributing
-
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
 ### License
