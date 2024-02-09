@@ -868,6 +868,10 @@ Error: ${err}
 }
 
 const YogaInigoPlugin = (config) => {
+  if (config?.Disabled) {
+    return {};
+  }
+
   if (!config?.Schema) {
     console.error("inigo-js: error, schema was not provided.");
     return {};
