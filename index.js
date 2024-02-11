@@ -242,13 +242,16 @@ function InigoPlugin(config) {
 class Inigo {
   #instance;
   #listenForSchema = false;
+  #disabled = false;
 
   constructor(cfg) {
     if (process.env.INIGO_ENABLE === "false") {
+      this.#disabled = true;
       return
     }
 
     if (cfg?.Disabled) {
+      this.#disabled = true;
       return
     }
 
@@ -289,6 +292,10 @@ class Inigo {
   }
 
   plugin(config = { trace_header: "Inigo-Router-TraceID" }) {
+    if (this.#disabled) {
+        return {} // silently return empty handlers
+    }
+
     if (this.#instance === undefined || this.#instance.instance() === 0) {
       console.warn("InigoPlugin: Inigo instance is not found")
       return {} // it's required to return empty handlers
