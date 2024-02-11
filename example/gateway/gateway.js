@@ -48,7 +48,10 @@ function logHeadersAndOpPlugin() {
 
 (async () => {
   // INIGO: create Inigo instance
-  const inigo = new Inigo();
+  const inigo = new Inigo({
+    Disabled: false,
+    SkipNonHTTPRequests: true,
+  });
 
   const gateway = new ApolloGateway({
     supergraphSdl: supergraphSdl,

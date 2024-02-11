@@ -241,7 +241,7 @@ function InigoPlugin(config) {
 
 class Inigo {
   #instance;
-  #listenForSchema = false;
+  #pluginConfig;
   #disabled = false;
 
   constructor(cfg) {
@@ -279,19 +279,27 @@ class Inigo {
       process.exit()
     }
 
-    this.#listenForSchema = config.Schema === null
     this.#instance = new InigoInstance(config);
     if (this.#instance.instance() === 0) {
       console.log("inigo-js: error, instance could not be created.");
       process.exit();
     }
+
+    // create internal configuration object
+    this.#pluginConfig = {
+      trace_header: "Inigo-Router-TraceID",
+      listen_for_schema: config.Schema === null,
+      skip_non_http_requests: cfg?.SkipNonHTTPRequests || false,
+    }
+
+    console.log("this.#pluginConfig", this.#pluginConfig)
   }
 
   instance() {
     return this.#instance;
   }
 
-  plugin(config = { trace_header: "Inigo-Router-TraceID" }) {
+  plugin() {
     if (this.#disabled) {
         return {} // silently return empty handlers
     }
@@ -301,11 +309,11 @@ class Inigo {
       return {} // it's required to return empty handlers
     }
 
-    return plugin(this.#instance, this.#listenForSchema, config);
+    return plugin(this.#instance, this.#pluginConfig);
   }
 }
 
-function plugin(inigo, listenForSchema, config) {
+function plugin(inigo, config) {
 
   const serverWillStart = async function({ apollo, schema, logger }) {
     const schemaDidLoadOrUpdate = function ({ apiSchema, coreSupergraphSdl }) {
@@ -332,7 +340,7 @@ function plugin(inigo, listenForSchema, config) {
     }
 
     // attach callback only if schema was not passed explicitly
-    if (listenForSchema) {
+    if (config.listen_for_schema) {
       handlers.schemaDidLoadOrUpdate = schemaDidLoadOrUpdate
     }
 
@@ -348,6 +356,11 @@ function plugin(inigo, listenForSchema, config) {
 
       if (inigo.instance() === 0) {
         console.warn("no inigo plugin instance")
+        return
+      }
+
+      // silently skip non-http requests if configured (typically internal requests, sent within the app itself)
+      if (config.skip_non_http_requests && (requestContext.request.http === undefined || requestContext.request.http === null)) {
         return
       }
 
@@ -566,6 +579,14 @@ const InigoDataSourceMixin = (superclass, inigo) => class extends superclass {
       return
     }
 
+    // get Inigo context provided from the parent plugin
+    const ctxKey = getCtxKey(incomingRequestContext);
+    const inigoCtx = incomingRequestContext[ctxKey].inigo;
+    if (inigoCtx === undefined) {
+        return // request was not processed by Inigo main plugin, skip subgraph query processing
+    }
+
+    // create Inigo query instance
     let query = this.#instance.newQuery({
       query: request.query,
       operationName: request.operationName || incomingRequestContext?.operationName,
@@ -574,11 +595,10 @@ const InigoDataSourceMixin = (superclass, inigo) => class extends superclass {
     });
     query.setSubgraphName(this.name)
 
-    let ctxKey = getCtxKey(incomingRequestContext);
-    let trace_header = incomingRequestContext[ctxKey].inigo.trace_header;
-    let traceid = incomingRequestContext.request.http?.headers.get(trace_header)
+    // pass traceid header to subgraph
+    let traceid = incomingRequestContext.request.http?.headers.get(inigoCtx?.trace_header)
     if (traceid){
-      request.http.headers.set(trace_header, traceid);
+      request.http.headers.set(inigoCtx?.trace_header, traceid);
     }
 
     // note: incomingRequestContext is undefined while IntrospectAndCompose is executed (bd it's not incoming request, it's internal)

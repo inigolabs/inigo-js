@@ -6,6 +6,7 @@ declare class Config {
   Disabled?: boolean;
   Token?: string;
   Schema?: string;
+  SkipNonHTTPRequests?: boolean;
 }
 
 export class InigoConfig extends Config {
