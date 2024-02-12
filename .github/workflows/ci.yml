@@ -1,0 +1,23 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+          
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install && npm install --prefix example/yoga && cp -r ./example/yoga/node_modules/inigo-linux-amd64 ../
+
+      - name: Run tests
+        run: npx jest
