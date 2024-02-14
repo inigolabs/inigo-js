@@ -60,6 +60,9 @@ interface InigoGatewayInfo {
 
 export function InigoFetchGatewayInfo(token?: string): Promise<InigoGatewayInfo>;
 
+type DataSourceConstructor = new (...args: any[]) => any // GraphQLDataSource;
+export function InigoDataSourceMixin(superclass: DataSourceConstructor, inigo?: Inigo): any; // GraphQLDataSource
+
 export class InigoRemoteDataSource extends RemoteGraphQLDataSource {
   constructor(server: ServiceEndpointDefinition, info?: Inigo);
 
