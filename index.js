@@ -920,6 +920,17 @@ const YogaInigoPlugin = (config) => {
     return {};
   }
 
+  const signalHandler = () => {
+    instance.shutdown();
+    if (getOS() == "darwin") {
+      process.exit(0);
+    }
+  };
+
+  process.on("SIGINT", signalHandler);
+  process.on("SIGTERM", signalHandler);
+  process.on("SIGQUIT", signalHandler);
+
   return {
     onExecute(args) {
       const query = instance.newQuery(args.args.contextValue.params);

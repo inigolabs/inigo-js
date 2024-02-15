@@ -46,9 +46,6 @@ function main() {
   });
   const server = createServer(yoga);
 
-  process.on("SIGINT", () => server.close());
-  process.on("SIGTERM", () => server.close());
-
   server.listen(4000, () => {
     console.info("Server is running on http://localhost:4000/graphql");
   });
