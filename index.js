@@ -895,6 +895,18 @@ Error: ${err}
 }
 
 const YogaInigoPlugin = (config) => {
+  let shutdown = () => { };
+  const signalHandler = () => {
+    shutdown();
+    if (getOS() == "darwin") {
+      process.exit(0);
+    }
+  };
+
+  process.on("SIGINT", signalHandler);
+  process.on("SIGTERM", signalHandler);
+  process.on("SIGQUIT", signalHandler);
+
   if (config?.Disabled) {
     return {};
   }
@@ -920,16 +932,9 @@ const YogaInigoPlugin = (config) => {
     return {};
   }
 
-  const signalHandler = () => {
+  shutdown = () => {
     instance.shutdown();
-    if (getOS() == "darwin") {
-      process.exit(0);
-    }
   };
-
-  process.on("SIGINT", signalHandler);
-  process.on("SIGTERM", signalHandler);
-  process.on("SIGQUIT", signalHandler);
 
   return {
     onExecute(args) {
