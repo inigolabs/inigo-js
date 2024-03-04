@@ -566,7 +566,18 @@ const InigoDataSourceMixin = (superclass, inigo) => class extends superclass {
       return Promise.resolve(request.inigo.response);
     }
 
-    return await super.sendRequest(request, context)
+    // we use 'request' object as a context of subgraph request call since there's no other object suitable for that
+    // purpose. In 'sendRequest' method 'request' object is also used as a body of the subgraph request. To ensure we don't
+    // add 'inigo' object to the body of the request, we need to remove it from the 'request' object before sending the
+    // request. (yoga server rejects graphql queries with unknown keys)
+    const temp = request.inigo;
+    delete request.inigo;
+
+    const resp = await super.sendRequest(request, context)
+
+    request.inigo = temp;
+
+    return resp;
   }
 
   async processRequest({ request, context, incomingRequestContext }) {
