@@ -467,7 +467,7 @@ function plugin(inigo, config) {
           const processed = query.processResponse(JSON.stringify({
             errors: resp.errors,
             response_size: 0,
-            response_body_counts: countResponseFields(resp),
+            // response_body_counts: countResponseFields(resp),
           }));
 
           setResponse(respContext, modResponse(resp, processed));
@@ -715,7 +715,7 @@ const InigoDataSourceMixin = (superclass, inigo) => class extends superclass {
     const inigo_resp = request.inigo.query.processResponse(JSON.stringify({
       errors: response.errors,
       response_size: 0,
-      response_body_counts: countResponseFields(response),
+      // response_body_counts: countResponseFields(response),
     }));
 
     return modResponse(response, inigo_resp);
@@ -972,7 +972,7 @@ const YogaInigoPlugin = (config) => {
             query.processResponse(JSON.stringify({
               errors: result.errors,
               response_size: 0,
-              response_body_counts: countResponseFields(result),
+              // response_body_counts: countResponseFields(result),
             })),
           ));
         },
@@ -1009,7 +1009,7 @@ const YogaInigoPlugin = (config) => {
                   query.processResponse(JSON.stringify({
                     errors: result.errors,
                     response_size: 0,
-                    response_body_counts: countResponseFields(result),
+                    // response_body_counts: countResponseFields(result),
                   })),
                 ),
               );
