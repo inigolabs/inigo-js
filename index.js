@@ -59,7 +59,7 @@ if (fs.existsSync("libinigo.so")) {
 
 const ffi = Library(libraryPath, {
   create: [uint64, [ref.refType(InigoConfig)]],
-  process_service_request: [
+  process_service_request_v2: [
     uint64, // requestData handle
     [
       uint64, // request handle
@@ -68,6 +68,7 @@ const ffi = Library(libraryPath, {
       pointer, int, // query
       ref.refType(pointer), ref.refType(int), // result
       ref.refType(pointer), ref.refType(int), // status
+      ref.refType(pointer), ref.refType(int), // analysis
     ],
   ],
   process_response: [
@@ -132,6 +133,8 @@ class Query {
   #query = {};
   #subgraph = "";
 
+  scalars = {};
+
   constructor(instance, query) {
     this.#instance = instance;
     this.#query = query;
@@ -157,6 +160,9 @@ class Query {
     const req_ptr = ref.alloc(ref.refType(pointer));
     const req_len_ptr = ref.alloc(int);
 
+    const analysis_ptr = ref.alloc(ref.refType(pointer));
+    const analysis_len_ptr = ref.alloc(int);
+
     const newHeaders = {};
 
     if (headers !== undefined) {
@@ -168,7 +174,7 @@ class Query {
     const headersBuf = Buffer.from(JSON.stringify(newHeaders));
     const subgraph = Buffer.from(this.#subgraph);
 
-    this.#handle = ffi.process_service_request(
+    this.#handle = ffi.process_service_request_v2(
         this.#instance,
         subgraph,
         subgraph.length,
@@ -179,7 +185,9 @@ class Query {
         resp_ptr,
         resp_len_ptr,
         req_ptr,
-        req_len_ptr
+        req_len_ptr,
+        analysis_ptr,
+        analysis_len_ptr
     );
 
     let response = null;
@@ -193,8 +201,13 @@ class Query {
       request = JSON.parse(ref.readPointer(req_ptr, 0, req_len_ptr.deref()));
     }
 
+    if (analysis_len_ptr.deref() > 0) {
+      this.scalars = new Set(ref.readPointer(analysis_ptr, 0, analysis_len_ptr.deref()).split(","));
+    }
+
     ffi.disposeMemory(resp_ptr.deref())
     ffi.disposeMemory(req_ptr.deref())
+    ffi.disposeMemory(analysis_ptr.deref())
 
     return { response, request };
   }
@@ -467,7 +480,7 @@ function plugin(inigo, config) {
           const processed = query.processResponse(JSON.stringify({
             errors: resp.errors,
             response_size: 0,
-            response_body_counts: countResponseFields(resp),
+            response_body_counts: responseCounts(resp, query.scalars),
           }));
 
           setResponse(respContext, modResponse(resp, processed));
@@ -715,7 +728,7 @@ const InigoDataSourceMixin = (superclass, inigo) => class extends superclass {
     const inigo_resp = request.inigo.query.processResponse(JSON.stringify({
       errors: response.errors,
       response_size: 0,
-      response_body_counts: countResponseFields(response),
+      response_body_counts: responseCounts(response, request.inigo.query.scalars),
     }));
 
     return modResponse(response, inigo_resp);
@@ -972,7 +985,7 @@ const YogaInigoPlugin = (config) => {
             query.processResponse(JSON.stringify({
               errors: result.errors,
               response_size: 0,
-              response_body_counts: countResponseFields(result),
+              response_body_counts: responseCounts(result, query.scalars),
             })),
           ));
         },
@@ -1009,7 +1022,7 @@ const YogaInigoPlugin = (config) => {
                   query.processResponse(JSON.stringify({
                     errors: result.errors,
                     response_size: 0,
-                    response_body_counts: countResponseFields(result),
+                    response_body_counts: responseCounts(result, query.scalars),
                   })),
                 ),
               );
@@ -1021,6 +1034,47 @@ const YogaInigoPlugin = (config) => {
   };
 };
 
+function responseCounts(resp, scalarsSet) {
+  return {
+    errors: resp.errors ? resp.errors.length : 0,
+    total_objects: countTotalObjects(resp, scalarsSet)
+  };
+}
+
+function countTotalObjects(resp, customScalarPathSet = {}) {
+  if (!resp.data) {
+    return 0;
+  }
+
+  let total = 0;
+  const stack = [{key: "data", val: resp.data}];
+
+  while (stack.length > 0) {
+    const item = stack.pop();
+
+    // skip potential JSON scalars
+    if (item.key in customScalarPathSet) {
+      continue;
+    }
+
+    // array
+    if (Array.isArray(item.val)) {
+      stack.push(...item.val.map(v => ({key: item.key, val: v})));
+      continue;
+    }
+
+    // object
+    if (typeof item.val === "object" && item.val !== null) {
+      // count
+      total++;
+      stack.push(...Object.entries(item.val).map(([k, v]) => ({key: `${item.key}.${k}`, val: v})))
+    }
+  }
+
+  return total;
+}
+
+exports.responseCounts = responseCounts;
 exports.countResponseFields = countResponseFields;
 exports.InigoFetchGatewayInfo = InigoFetchGatewayInfo;
 exports.InigoSchemaManager = InigoSchemaManager;

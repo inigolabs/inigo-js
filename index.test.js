@@ -11,6 +11,10 @@ describe("CountResponseFields", () => {
         "data.key2": 1,
         "errors": 0,
       },
+      expected_total_counts: {
+        "total_objects": 1,
+        "errors": 0,
+      }
     },
     {
       name: "Test 2",
@@ -19,6 +23,10 @@ describe("CountResponseFields", () => {
         "data": 1,
         "errors": 0,
       },
+      expected_total_counts: {
+        "total_objects": 1,
+        "errors": 0,
+      }
     },
     {
       name: "Test 3",
@@ -30,6 +38,10 @@ describe("CountResponseFields", () => {
         "data.key2": 2,
         "errors": 0,
       },
+      expected_total_counts: {
+        "total_objects": 1,
+        "errors": 0,
+      }
     },
     {
       name: "Test 4",
@@ -41,6 +53,10 @@ describe("CountResponseFields", () => {
         "data.key2": 2,
         "errors": 0,
       },
+      expected_total_counts: {
+        "total_objects": 1,
+        "errors": 0,
+      }
     },
     {
       name: "Test 5",
@@ -50,6 +66,10 @@ describe("CountResponseFields", () => {
         "data.key": 2,
         "errors": 0,
       },
+      expected_total_counts: {
+        "total_objects": 2,
+        "errors": 0,
+      }
     },
     {
       name: "Test 6",
@@ -58,6 +78,10 @@ describe("CountResponseFields", () => {
         "data": 1,
         "errors": 0,
       },
+      expected_total_counts: {
+        "total_objects": 0,
+        "errors": 0,
+      }
     },
     {
       name: "Test 7",
@@ -71,6 +95,10 @@ describe("CountResponseFields", () => {
         "data.second.key": 2,
         "errors": 0,
       },
+      expected_total_counts: {
+        "total_objects": 5,
+        "errors": 0,
+      }
     },
     {
       name: "Test 8",
@@ -86,6 +114,10 @@ describe("CountResponseFields", () => {
         "data.second.key2": 1,
         "errors": 0,
       },
+      expected_total_counts: {
+        "total_objects": 5,
+        "errors": 0,
+      }
     },
     {
       name: "Test 9",
@@ -103,6 +135,10 @@ describe("CountResponseFields", () => {
         "data.second.key2": 1,
         "errors": 0,
       },
+      expected_total_counts: {
+        "total_objects": 5,
+        "errors": 0,
+      }
     },
     {
       name: "Test 10",
@@ -129,16 +165,20 @@ describe("CountResponseFields", () => {
         "data.second.key2": 1,
         "errors": 0,
       },
+      expected_total_counts: {
+        "total_objects": 12,
+        "errors": 0,
+      }
     },
   ];
 
   for (const t of tests) {
     test(
       t.name,
-      () =>
-        expect(inigo.countResponseFields(JSON.parse(t.payload))).toEqual(
-          t.expected,
-        ),
+      () => {
+        expect(inigo.countResponseFields(JSON.parse(t.payload))).toEqual(t.expected)
+        expect(inigo.responseCounts(JSON.parse(t.payload))).toEqual(t.expected_total_counts)
+      }
     );
   }
 });
