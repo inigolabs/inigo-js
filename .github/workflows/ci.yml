@@ -1,7 +1,7 @@
 name: Continuous Integration
-
+# temporarily disable, tests rely on published inigo bindings - problems occur when new api is not published yet
 on:
-  pull_request:
+#  pull_request:
 
 jobs:
   checks:
