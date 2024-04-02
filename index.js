@@ -736,7 +736,8 @@ const InigoDataSourceMixin = (superclass, inigo) => class extends superclass {
 }
 
 function modResponse(response, extended) {
-  if (extended?.extensions){
+  // note: do not set extensions if middleware returned empty extensions
+  if (extended?.extensions && Object.keys(extended.extensions).length > 0) {
     if (!response.extensions){
       response.extensions = {}
     }
