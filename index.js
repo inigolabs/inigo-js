@@ -202,7 +202,7 @@ class Query {
     }
 
     if (analysis_len_ptr.deref() > 0) {
-      this.scalars = new Set(ref.readPointer(analysis_ptr, 0, analysis_len_ptr.deref()).split(","));
+      this.scalars = new Set(ref.readPointer(analysis_ptr, 0, analysis_len_ptr.deref()).toString().split(","));
     }
 
     ffi.disposeMemory(resp_ptr.deref())
