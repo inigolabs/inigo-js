@@ -18,20 +18,14 @@
   "scripts": {
     "test": "jest --logHeapUsage ./index.test.js"
   },
-  "engines": {
-    "node": ">=18.0.0 <=18.19.1 || >=19.0.0 <=19.9.0 || >=20.0.0 <=20.11.1"
-  },
   "author": "inigolabs",
   "license": "MIT",
   "dependencies": {
     "@apollo/gateway": "^2.3.2",
     "@envelop/core": "^5.0.0",
-    "@inigolabs/ffi-napi": "^4.0.10",
-    "@inigolabs/ref-napi": "^4.0.6",
-    "ffi-rs": "1.0.77",
+    "ffi-rs": "1.0.76",
     "graphql": "^16.6.0",
     "graphql-request": "^5.1.0",
-    "ref-struct-di": "^1.1.1",
     "uuid": "^9.0.1"
   },
   "homepage": "https://github.com/inigolabs/inigo-js",
