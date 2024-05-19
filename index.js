@@ -1,94 +1,15 @@
-const { Library } = require("@inigolabs/ffi-napi");
-const ref = require("@inigolabs/ref-napi");
-const struct = require("ref-struct-di")(ref);
-const { resolve } = require("path");
 const { printSchema, parse, getOperationAST } = require("graphql");
 const { GraphQLClient, gql } = require("graphql-request");
 const { RemoteGraphQLDataSource } = require("@apollo/gateway");
-const fs = require("fs");
 const { v4: uuidv4 } = require('uuid');
 const envelop = require("@envelop/core");
-
-const pointer = "pointer";
-const string = ref.types.CString;
-const bool = ref.types.bool;
-const int = ref.types.int;
-const uint64 = ref.types.uint64;
-const _void_ = ref.types.void;
-
-const InigoConfig = struct({
-  Debug: bool,
-  Name: string,
-  Service: string,
-  Token: string,
-  Schema: string,
-  Runtime: string,
-  EgressUrl: string,
-  Gateway: uint64,
-  DisableResponseData: bool,
-});
-
-function getArch() {
-  const arch = process.arch;
-  if (arch == "x64") return "amd64";
-  if (arch == "x32") return "i386";
-  return arch;
-}
-
-function getOS() {
-  const os = process.platform;
-  if (os == "win32") return "windows";
-  return os;
-}
-
-const pf = `inigo-${getOS()}-${getArch()}`;
-var ext = ".so" // Linux
-
-if (getOS() == "windows") {
-  ext = ".dll"
-}
-
-if (getOS() == "darwin") {
-  ext = ".dylib"
-}
-
-let libraryPath = resolve(__dirname, `../${pf}/${pf}${ext}`);
-if (fs.existsSync("libinigo.so")) {
-  libraryPath = "libinigo.so"
-}
-
-const ffi = Library(libraryPath, {
-  create: [uint64, [ref.refType(InigoConfig)]],
-  process_service_request_v2: [
-    uint64, // requestData handle
-    [
-      uint64, // request handle
-      pointer, int, // subgraph name
-      pointer, int, // header
-      pointer, int, // query
-      ref.refType(pointer), ref.refType(int), // result
-      ref.refType(pointer), ref.refType(int), // status
-      ref.refType(pointer), ref.refType(int), // analysis
-    ],
-  ],
-  process_response: [
-    _void_,
-    [uint64, uint64, pointer, int, ref.refType(pointer), ref.refType(int)],
-  ],
-  get_version: [ string, [] ],
-  disposeHandle: [ _void_, [ uint64 ] ],
-  disposeMemory: [ _void_, [ pointer ] ],
-  update_schema: [ bool, [ uint64, string, int ] ],
-  check_lasterror: [ string, [] ],
-  shutdown: [ _void_, [ uint64 ] ],
-  copy_querydata: [ uint64, [ uint64 ] ],
-});
+const ffi = require("./ffi.js")
 
 class InigoInstance {
   #instance = 0;
 
   constructor(config) {
-    this.#instance = ffi.create(config.ref());
+    this.#instance = ffi.create(config);
     const err = ffi.check_lasterror();
     if (err != "") {
       console.log("inigo-js:", err);
@@ -114,8 +35,7 @@ class InigoInstance {
   }
 
   updateSchema(schema) {
-    const buf = Buffer.from(schema)
-    ffi.update_schema(this.#instance, buf, buf.length)
+    ffi.update_schema(this.#instance, schema)
   }
 
   shutdown(){
@@ -124,7 +44,7 @@ class InigoInstance {
 }
 
 function version() {
-  return JSON.parse(ffi.get_version());
+  return ffi.get_version();
 }
 
 class Query {
@@ -153,16 +73,6 @@ class Query {
   }
 
   processRequest(headers) {
-    const input = Buffer.from(JSON.stringify(this.#query));
-    const resp_ptr = ref.alloc(ref.refType(pointer));
-    const resp_len_ptr = ref.alloc(int);
-
-    const req_ptr = ref.alloc(ref.refType(pointer));
-    const req_len_ptr = ref.alloc(int);
-
-    const analysis_ptr = ref.alloc(ref.refType(pointer));
-    const analysis_len_ptr = ref.alloc(int);
-
     const newHeaders = {};
 
     if (headers !== undefined) {
@@ -171,43 +81,20 @@ class Query {
       }
     }
 
-    const headersBuf = Buffer.from(JSON.stringify(newHeaders));
-    const subgraph = Buffer.from(this.#subgraph);
-
-    this.#handle = ffi.process_service_request_v2(
+    const result = ffi.process_service_request_v2(
         this.#instance,
-        subgraph,
-        subgraph.length,
-        headersBuf,
-        headersBuf.length,
-        input,
-        input.length,
-        resp_ptr,
-        resp_len_ptr,
-        req_ptr,
-        req_len_ptr,
-        analysis_ptr,
-        analysis_len_ptr
+        this.#subgraph,
+        this.#query,
+        newHeaders
     );
 
-    let response = null;
-    let request = null;
+    this.#handle = result.handle;
+    let response = result.response;
+    let request = result.request;
 
-    if (resp_len_ptr.deref() > 0) {
-      response = JSON.parse(ref.readPointer(resp_ptr, 0, resp_len_ptr.deref()));
+    if (result.scalars !== null) {
+    this.scalars = result.scalars;
     }
-
-    if (req_len_ptr.deref() > 0) {
-      request = JSON.parse(ref.readPointer(req_ptr, 0, req_len_ptr.deref()));
-    }
-
-    if (analysis_len_ptr.deref() > 0) {
-      this.scalars = new Set(ref.readPointer(analysis_ptr, 0, analysis_len_ptr.deref()).toString().split(","));
-    }
-
-    ffi.disposeMemory(resp_ptr.deref())
-    ffi.disposeMemory(req_ptr.deref())
-    ffi.disposeMemory(analysis_ptr.deref())
 
     return { response, request };
   }
@@ -215,25 +102,13 @@ class Query {
   processResponse(data) {
     if (this.#handle == 0) return;
 
-    const input = Buffer.from(data);
-    const output_ptr = ref.alloc(ref.refType(pointer));
-    const output_len_ptr = ref.alloc(int);
-
-    ffi.process_response(
+    const result = ffi.process_response(
       this.#instance,
       this.#handle,
-      input,
-      input.length,
-      output_ptr,
-      output_len_ptr
+      data,
     );
-    const output = ref.readPointer(output_ptr, 0, output_len_ptr.deref());
-    const result = JSON.parse(output);
-    
-    ffi.disposeMemory(output_ptr.deref())
-    ffi.disposeHandle(this.#handle)
-    this.#handle = 0;
 
+    this.#handle = 0;
     return result
   }
 }
@@ -269,12 +144,12 @@ class Inigo {
     }
 
     // create internal configuration object
-    const config = new InigoConfig({
+    const config = {
       Name: "inigo-js",
       Runtime: "node" + process.version.match(/\d+\.\d+/)[0],
       Token: process.env.INIGO_SERVICE_TOKEN,
       DisableResponseData: true,
-    })
+    }
 
     // pass token if provided
     if (cfg?.Token && typeof cfg?.Token === "string") {
@@ -941,11 +816,11 @@ const YogaInigoPlugin = (config) => {
     return {};
   }
 
-  let cfg = new InigoConfig({
+  let cfg = {
     Token: process.env.INIGO_SERVICE_TOKEN,
     Schema: config.Schema,
     DisableResponseData: true,
-  });
+  };
 
   if (config?.Token && typeof config?.Token === "string") {
     cfg.Token = config.Token;
@@ -1081,7 +956,6 @@ exports.InigoFetchGatewayInfo = InigoFetchGatewayInfo;
 exports.InigoSchemaManager = InigoSchemaManager;
 exports.InigoDataSourceMixin = InigoDataSourceMixin;
 exports.InigoRemoteDataSource = InigoDataSourceMixin(RemoteGraphQLDataSource);
-exports.InigoConfig = InigoConfig;
 exports.InigoPlugin = InigoPlugin;
 exports.Inigo = Inigo;
 exports.version = version;
