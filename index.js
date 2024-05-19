@@ -3,7 +3,7 @@ const { GraphQLClient, gql } = require("graphql-request");
 const { RemoteGraphQLDataSource } = require("@apollo/gateway");
 const { v4: uuidv4 } = require('uuid');
 const envelop = require("@envelop/core");
-const ffi = require("./ffi.js")
+const ffi = (process.env.INIGO_FFI_EXPERIMENTAL === '1' || process.env.INIGO_FFI_EXPERIMENTAL?.toLowerCase() === 'true') ? require("./ffi_rs.js") : require("./ffi.js");
 
 class InigoInstance {
   #instance = 0;
@@ -93,7 +93,7 @@ class Query {
     let request = result.request;
 
     if (result.scalars !== null) {
-    this.scalars = result.scalars;
+      this.scalars = result.scalars;
     }
 
     return { response, request };
