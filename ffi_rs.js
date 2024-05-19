@@ -140,8 +140,6 @@ function copy_querydata(val) {
 }
 
 function process_service_request_v2(instance, subgraph, query, header) {
-  console.time("process_service_request_v2")
-
   const retType = [DataType.String, DataType.I64];
   const subgraphs = Buffer.from(subgraph);
   const headers = Buffer.from(JSON.stringify(header));
@@ -160,7 +158,6 @@ function process_service_request_v2(instance, subgraph, query, header) {
     ]
   })
 
-  console.time("ffi.process_service_request_v2")
   const handle = ffi.process_service_request_v2([
     instance, 
     subgraphs, 
@@ -176,7 +173,6 @@ function process_service_request_v2(instance, subgraph, query, header) {
     externalPtr[4],
     externalPtr[5]
   ]);
-  console.timeEnd('ffi.process_service_request_v2');
 
   let response = null;
   let request = null;
@@ -186,27 +182,25 @@ function process_service_request_v2(instance, subgraph, query, header) {
 
   // response
   if (external[1] > 0) {
-    response = JSON.parse(external[0]);
+    response = JSON.parse(external[0].substring(0, external[1]));
   }
 
   // request
   if (external[3] > 0) {
-    request = JSON.parse(req[2]);
+    request = JSON.parse(external[2].substring(0, external[3]));
   }
 
   // analysis
   if (external[5] > 0) {
-    scalars = new Set(external[4].split(","));
+    scalars = new Set(external[4].substring(0, external[5]).split(","));
   }
   
   freePointer(externalPtr);
 
-  console.timeEnd('process_service_request_v2');
   return { handle, scalars, response, request };
 }
 
 function process_response(instance, handle, data) {
-  console.time('process_response');
 
   const input = Buffer.from(data);
 
@@ -225,13 +219,14 @@ function process_response(instance, handle, data) {
     output_ptr[1]
   ]);
   
+  let result;
   const output = restorePointer({ paramsValue: output_ptr, retType: retType })
-  const result = JSON.parse(output[0]);
+  if (output[1] > 0) {
+    result = JSON.parse(output[0].substring(0, output[1]));
+  }
 
   freePointer(output_ptr);
   ffi.disposeHandle([handle])
-
-  console.timeEnd('process_response');
 
   return result
 }

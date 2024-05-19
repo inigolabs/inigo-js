@@ -3,7 +3,7 @@ const { GraphQLClient, gql } = require("graphql-request");
 const { RemoteGraphQLDataSource } = require("@apollo/gateway");
 const { v4: uuidv4 } = require('uuid');
 const envelop = require("@envelop/core");
-const ffi = (process.env.INIGO_FFI_EXPERIMENTAL === '1' || process.env.INIGO_FFI_EXPERIMENTAL?.toLowerCase() === 'true') ? require("./ffi_rs.js") : require("./ffi.js");
+const ffi = require("./ffi_rs.js");
 
 class InigoInstance {
   #instance = 0;
