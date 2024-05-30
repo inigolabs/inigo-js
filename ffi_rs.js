@@ -89,15 +89,10 @@ const ffi = define({
     retType: DataType.Void,
     paramsType: [ DataType.U64 ],
   },
-  disposeMemory: {
-    library: libinigo,
-    retType: DataType.Void,
-    paramsType: [ DataType.Void ],
-  },
   update_schema: {
     library: libinigo,
     retType: DataType.Bool,
-    paramsType: [ DataType.U64, DataType.String, DataType.I64 ],
+    paramsType: [ DataType.U64, DataType.U8Array, DataType.I64 ],
   },
   check_lasterror: {
     library: libinigo,
@@ -140,22 +135,19 @@ function copy_querydata(val) {
 }
 
 function process_service_request_v2(instance, subgraph, query, header) {
-  const retType = [DataType.String, DataType.I64];
+  const retType = [
+    DataType.String, DataType.I64, // response
+    DataType.String, DataType.I64, // request
+    DataType.String, DataType.I64  // analysis
+  ];
+
   const subgraphs = Buffer.from(subgraph);
   const headers = Buffer.from(JSON.stringify(header));
   const input = Buffer.from(JSON.stringify(query));
 
   const externalPtr = createPointer({
-    paramsType: [
-      DataType.String, DataType.I64, // response
-      DataType.String, DataType.I64, // request
-      DataType.String, DataType.I64  // analysis
-    ],
-    paramsValue: [
-      "", 0, 
-      "", 0, 
-      "", 0
-    ]
+    paramsType: retType,
+    paramsValue: [ "", 0, "", 0, "", 0 ]
   })
 
   const handle = ffi.process_service_request_v2([
@@ -178,7 +170,10 @@ function process_service_request_v2(instance, subgraph, query, header) {
   let request = null;
   let scalars = null;
 
-  const external = restorePointer({ paramsValue: externalPtr, retType: retType })
+  const external = restorePointer({ 
+    paramsValue: externalPtr, 
+    retType: retType 
+  })
 
   // response
   if (external[1] > 0) {
@@ -226,7 +221,6 @@ function process_response(instance, handle, data) {
   }
 
   freePointer(output_ptr);
-  ffi.disposeHandle([handle])
 
   return result
 }
@@ -236,16 +230,12 @@ function get_version() {
 }
 
 function disposeHandle(handle) {
-  return ffi.disposeHandle(handle);
-}
-
-function disposeMemory(ptr) {
-  return ffi.disposeMemory(ptr);
+  return ffi.disposeHandle([handle]);
 }
 
 function update_schema(handle, schema) {
   const buf = Buffer.from(schema.toString('base64'))
-  return ffi.update_schema(handle, buf, buf.length);
+  return ffi.update_schema([handle, buf, buf.length]);
 }
 
 function shutdown(handle) {
@@ -260,7 +250,6 @@ module.exports = {
   process_response,
   get_version,
   disposeHandle,
-  disposeMemory,
   update_schema,
   shutdown
 };
