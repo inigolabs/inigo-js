@@ -294,7 +294,6 @@ function plugin(inigo, config) {
 
           if (processed?.response != null) {
             response = processed.response
-            query.dispose();
             return
           }
 
@@ -317,12 +316,10 @@ function plugin(inigo, config) {
         responseForOperation(opCtx) {
           // response was provided by Inigo.
           if (response === undefined) {
-            query?.dispose();
             return
           }
 
           if (ctxKey === "context") { // v2,v3
-            query?.dispose();
             return response
           }
 
@@ -348,7 +345,6 @@ function plugin(inigo, config) {
 
           // response was provided by Inigo.
           if (response !== undefined) {
-            query.dispose();
             return
           }
 
@@ -531,7 +527,6 @@ const InigoDataSourceMixin = (superclass, inigo) => class extends superclass {
     // introspection request
     if (processed?.response != null) {
       request.inigo.response = processed.response;
-      query.dispose();
       return
     }
 
@@ -859,7 +854,6 @@ const YogaInigoPlugin = (config) => {
       const { response } = query.processRequest(newHeaders);
       if (response) {
         args.setResultAndStopExecution(response);
-        query.dispose();
         return {};
       }
       
@@ -890,7 +884,6 @@ const YogaInigoPlugin = (config) => {
       const { response } = query.processRequest(newHeaders);
       if (response) {
         args.setResultAndStopExecution(response);
-        query.dispose();
         return {};
       }
 
