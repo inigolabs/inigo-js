@@ -183,6 +183,7 @@ class Inigo {
       trace_header: "Inigo-Router-TraceID",
       listen_for_schema: config.Schema === null,
       skip_non_http_requests: cfg?.SkipNonHTTPRequests || false,
+      persisting_enabled: process.env.INIGO_PERSISTING_ENABLE === "true",
     }
 
     console.log("this.#pluginConfig", this.#pluginConfig)
@@ -263,12 +264,74 @@ function plugin(inigo, config) {
       let query; // instance of the Inigo query
       let response; // optional. If request was blocked by Inigo.
 
+      // if persisting enabled apollo APQ/PQ requests will go through Inigo
+      // either apollo processes extensions.persistedQuery.sha256hash or Inigo
+      // apollo server should have config.persistedQueries set to false not to interfere with Inigo logic
+      if (config.persisting_enabled) {
+        // create Inigo query and store in a closure
+        // at this stage APQ is not resolved query yet so only passed in query will work
+        query = inigo.newQuery({
+          query: requestContext.request.query || "",
+          operationName: requestContext.request.operationName,
+          variables: requestContext.request.variables || {},
+          extensions: requestContext.request.extensions || {},
+        });
+
+        // Create request context, for storing blocked status
+        if (requestContext[ctxKey].inigo === undefined) {
+          requestContext[ctxKey].inigo = { blocked: false };
+        }
+
+        requestContext[ctxKey].inigo.trace_header = config.trace_header;
+
+        const headersPresent = requestContext.request.http && requestContext.request.http.headers;
+
+        if (headersPresent && !requestContext.request.http.headers.get(config.trace_header)) {
+          requestContext.request.http.headers.set(config.trace_header, uuidv4());
+        }
+
+        // process request
+        let headers = undefined
+        if (headersPresent) {
+          headers = requestContext.request.http.headers;
+        }
+        const processed = query.processRequest(headers);
+
+        if (processed?.response != null) {
+          response = processed.response
+          // dummy query to bypass APQ/empty query check.
+          // response is already generated to prevent request from being processed by server.
+          requestContext.request.query = 'query IntrospectionQuery { __schema { queryType { name } } }'
+        }
+
+        // request query has been mutated
+        if (processed?.request != null) {
+          // Get the structure from your plugin
+          const { query, variables, extensions, operationName } = processed.request;
+
+          if (headersPresent && processed.request.extensions && processed.request.extensions.traceparent) {
+            requestContext.request.http.headers.set('traceparent', processed.request.extensions.traceparent);
+          }
+
+          // override already parsed variables
+          requestContext.request.operationName = operationName
+          requestContext.request.query = query
+          requestContext.request.variables = variables
+          requestContext.request.extensions = extensions
+        }
+      }
+
       return {
         // didResolveOperation callback is invoked after server has determined the string representation of the query.
         // Client can send query as a string or APQ (only query hash is sent). In this case, callback is executed after
         // query string is retrieved from cache by the hash.
         // Also, it's not triggered on the first APQ, when client sends query hash, but server cannot retrieve it.
         didResolveOperation(ctx) {
+          // query was already processed at the persisted storage step resolver
+          if (config.persisting_enabled) {
+            return;
+          }
+
           // create Inigo query and store in a closure
           // ctx.source always holds the string representation of the query, in case of regular request or APQ
           query = inigo.newQuery({
