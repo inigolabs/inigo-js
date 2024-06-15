@@ -131,3 +131,6 @@ dist
 
 # idea configuration files
 .idea
+
+.DS_Store
+

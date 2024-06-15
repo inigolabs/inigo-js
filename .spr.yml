@@ -3,7 +3,6 @@ githubRepoName: inigo-js
 githubHost: github.com
 requireChecks: false
 requireApproval: false
-githubRemote: origin
-githubBranch: master
-remoteBranches: []
 mergeMethod: rebase
+mergeQueue: false
+forceFetchTags: false

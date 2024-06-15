@@ -91,7 +91,7 @@ const ffi = define({
   },
   update_schema: {
     library: libinigo,
-    retType: DataType.Bool,
+    retType: DataType.Boolean,
     paramsType: [ DataType.U64, DataType.U8Array, DataType.I64 ],
   },
   check_lasterror: {
@@ -239,7 +239,7 @@ function update_schema(handle, schema) {
 }
 
 function shutdown(handle) {
-  return ffi.shutdown(handle);
+  return ffi.shutdown([handle]);
 }
 
 module.exports = {

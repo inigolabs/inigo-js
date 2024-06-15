@@ -181,11 +181,9 @@ class Inigo {
     // create internal configuration object
     this.#pluginConfig = {
       trace_header: "Inigo-Router-TraceID",
-      listen_for_schema: config.Schema === null,
+      listen_for_schema: config.Schema === null || config.Schema === undefined,
       skip_non_http_requests: cfg?.SkipNonHTTPRequests || false,
     }
-
-    console.log("this.#pluginConfig", this.#pluginConfig)
   }
 
   instance() {
@@ -226,7 +224,7 @@ function plugin(inigo, config) {
 
     const handlers = {
       serverWillStop: async () => {
-        if (inigo instanceof Inigo) {
+        if (inigo instanceof InigoInstance) {
           await inigo.shutdown()
         }
       }
