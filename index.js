@@ -799,7 +799,7 @@ const YogaInigoPlugin = (config) => {
   let shutdown = () => { };
   const signalHandler = () => {
     shutdown();
-    if (getOS() == "darwin") {
+    if (process.platform === "darwin") {
       process.exit(0);
     }
   };
