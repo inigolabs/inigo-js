@@ -13,13 +13,13 @@
     "@apollo/gateway": "latest",
     "@apollo/server": "latest",
     "dotenv": "^16.0.3",
-    "inigo-linux-amd64": "latest",
-    "inigo-linux-arm64": "latest",
     "inigo-darwin-amd64": "latest",
     "inigo-darwin-arm64": "latest",
+    "inigo-linux-amd64": "latest",
+    "inigo-linux-arm64": "latest",
     "inigo-windows-amd64": "latest",
     "inigo-windows-arm64": "latest",
-    "inigo.js": "latest"
+    "inigo.js": "file:../.."
   },
   "devDependencies": {
     "concurrently": "latest",

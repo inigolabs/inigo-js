@@ -30,6 +30,6 @@
     "inigo-darwin-arm64": "latest",
     "inigo-windows-amd64": "latest",
     "inigo-windows-arm64": "latest",
-    "inigo.js": "file:../../"
+    "inigo.js": "file:../.."
   }
 }
