@@ -7,19 +7,20 @@
     "start-service-reviews": "nodemon services/reviews/index.js",
     "start-service-products": "nodemon services/products/index.js",
     "start-service-inventory": "nodemon services/inventory/index.js",
-    "start-services": "concurrently \"npm:start-service-*\""
+    "start-services": "concurrently \"npm:start-service-*\"",
+    "preinstall": "cd ../.. && npm install"
   },
   "dependencies": {
     "@apollo/gateway": "latest",
     "@apollo/server": "latest",
-    "dotenv": "^16.0.3",
-    "inigo-linux-amd64": "latest",
-    "inigo-linux-arm64": "latest",
+    "dotenv": "^16.4.5",
     "inigo-darwin-amd64": "latest",
     "inigo-darwin-arm64": "latest",
+    "inigo-linux-amd64": "latest",
+    "inigo-linux-arm64": "latest",
     "inigo-windows-amd64": "latest",
     "inigo-windows-arm64": "latest",
-    "inigo.js": "latest"
+    "inigo.js": "file:../.."
   },
   "devDependencies": {
     "concurrently": "latest",

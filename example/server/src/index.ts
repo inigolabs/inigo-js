@@ -3,7 +3,7 @@ import { config } from "dotenv";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { parse } from "yaml";
-import { InigoPlugin, InigoConfig } from 'inigo.js';
+import { InigoPlugin } from 'inigo.js';
 import * as url from "url";
 import resolvers from "./resolvers.js"
 
@@ -16,10 +16,10 @@ const cwd = resolve(__dirname, "..");
 const typeDefs = readFileSync(resolve(cwd, "data/schema.graphql"), "utf-8");
 const data = parse(readFileSync(resolve(cwd, "data/starwars_data.yaml"), "utf-8"));
 
-const inigoCfg = new InigoConfig({
+const inigoCfg = {
   Token: INIGO_SERVICE_TOKEN,
   Schema: typeDefs,
-});
+};
 
 const server = new ApolloServer({
   debug: false,
