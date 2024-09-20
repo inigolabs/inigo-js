@@ -23,7 +23,7 @@
   "dependencies": {
     "@apollo/gateway": "^2.9.1",
     "@envelop/core": "^5.0.2",
-    "ffi-rs": "1.0.76",
+    "ffi-rs": "1.0.95",
     "graphql": "^16.9.0",
     "graphql-request": "^5.2.0",
     "uuid": "^10.0.0"
