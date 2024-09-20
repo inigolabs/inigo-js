@@ -1,6 +1,6 @@
 {
   "name": "inigo.js",
-  "version": "0.30.0",
+  "version": "0.30.11",
   "description": "Inigo's middleware integration offers GraphQL Security, Analytics, Rate-limiting, Access Contorl and more.",
   "main": "index.js",
   "keywords": [
@@ -21,12 +21,12 @@
   "author": "inigolabs",
   "license": "MIT",
   "dependencies": {
-    "@apollo/gateway": "^2.3.2",
-    "@envelop/core": "^5.0.0",
+    "@apollo/gateway": "^2.9.1",
+    "@envelop/core": "^5.0.2",
     "ffi-rs": "1.0.76",
-    "graphql": "^16.6.0",
-    "graphql-request": "^5.1.0",
-    "uuid": "^9.0.1"
+    "graphql": "^16.9.0",
+    "graphql-request": "^5.2.0",
+    "uuid": "^10.0.0"
   },
   "homepage": "https://github.com/inigolabs/inigo-js",
   "repository": {
