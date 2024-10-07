@@ -128,7 +128,24 @@ function getCtxKey(requestContext) {
 }
 
 function InigoPlugin(config) {
+  let shutdown = () => { };
+  const signalHandler = () => {
+    shutdown();
+    if (process.platform === "darwin") {
+      process.exit(0);
+    }
+  };
+
+  process.on("SIGINT", signalHandler);
+  process.on("SIGTERM", signalHandler);
+  process.on("SIGQUIT", signalHandler);
+
   const inigo = new Inigo(config)
+
+  shutdown = () => {
+    inigo.instance().shutdown();
+  };
+
   return inigo.plugin()
 }
 
