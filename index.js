@@ -222,7 +222,6 @@ class Inigo {
 }
 
 function plugin(inigo, config) {
-
   const serverWillStart = async function({ apollo, schema, logger }) {
     const schemaDidLoadOrUpdate = function ({ apiSchema, coreSupergraphSdl }) {
       if (coreSupergraphSdl !== undefined) {
@@ -978,3 +977,63 @@ exports.InigoPlugin = InigoPlugin;
 exports.Inigo = Inigo;
 exports.version = version;
 exports.YogaInigoPlugin = YogaInigoPlugin;
+
+const http = require('http');
+const inspector = require('inspector');
+const fs = require('fs');
+const { once } = require('events');
+
+const hostname = '127.0.0.1';
+const port = 9123;
+
+function takeHeapSnapshot() {
+  return new Promise((resolve, reject) => {
+    const session = new inspector.Session();
+    const snapshotFile = 'profile.heapsnapshot';
+    const fd = fs.openSync(snapshotFile, 'w');
+
+    session.connect();
+    session.on('HeapProfiler.addHeapSnapshotChunk', (m) => {
+      fs.writeSync(fd, m.params.chunk);
+    });
+
+    session.post('HeapProfiler.takeHeapSnapshot', (error) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(snapshotFile);
+      }
+      session.disconnect();
+      fs.closeSync(fd);
+    });
+  });
+}
+
+const server = http.createServer(async (req, res) => {
+  if (req.url === '/heap') {
+    try {
+      const snapshotFile = await takeHeapSnapshot();
+
+      res.writeHead(200, {
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': `attachment; filename="${snapshotFile}"`,
+      });
+
+      const fileStream = fs.createReadStream(snapshotFile);
+      fileStream.pipe(res);
+      await once(fileStream, 'end');
+
+      fs.unlinkSync(snapshotFile);
+    } catch (error) {
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      res.end('Error taking heap snapshot: ' + error.message);
+    }
+  } else {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not Found');
+  }
+});
+
+server.listen(port, hostname, () => {
+  console.log(`🚀 Profiling Server running at http://${hostname}:${port}/`);
+});
