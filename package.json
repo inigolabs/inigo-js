@@ -26,7 +26,8 @@
     "ffi-rs": "1.0.76",
     "graphql": "^16.9.0",
     "graphql-request": "^5.2.0",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "as-integration-next": "https://github.com/inigolabs/as-integration-next.git"
   },
   "homepage": "https://github.com/inigolabs/inigo-js",
   "repository": {
