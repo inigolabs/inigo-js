@@ -1,6 +1,7 @@
 import { GraphQLDataSourceProcessOptions } from "@apollo/gateway/dist/datasources/types";
 import { GatewayGraphQLRequestContext, GatewayGraphQLResponse } from "@apollo/server-gateway-interface";
 import { ServiceEndpointDefinition, RemoteGraphQLDataSource, SupergraphManager, SupergraphSdlHook } from "@apollo/gateway";
+import type { startServerAndCreateNextHandler } from "as-integration-next";
 
 declare class Config {
   Disabled?: boolean;
@@ -98,3 +99,5 @@ export class InigoSchemaManager implements SupergraphManager {
 
   initialize: SupergraphSdlHook;
 }
+
+export { startServerAndCreateNextHandler };
