@@ -39,6 +39,10 @@ class InigoInstance {
     ffi.update_schema(this.#instance, schema);
   }
 
+  flush() {
+    ffi.flush(this.#instance);
+  }
+
   shutdown() {
     ffi.shutdown(this.#instance);
   }
