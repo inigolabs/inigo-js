@@ -1,8 +1,23 @@
+import React from "react";
 import Link from "next/link";
-
 import queryGraphql from "../shared/query-graphql";
 
-export default function UserListing({ users }) {
+const getUsers = async () => {
+  const { users } = await queryGraphql(`
+    query {
+      users {
+        name
+        username
+      }
+    }
+  `);
+
+  return users as { username: string; name: string }[];
+};
+
+export default async function UserListing() {
+  const users = await getUsers();
+
   return (
     <div>
       <h1>User Listing</h1>
@@ -17,16 +32,4 @@ export default function UserListing({ users }) {
       </ul>
     </div>
   );
-}
-
-export async function getStaticProps() {
-  const { users } = await queryGraphql(`
-    query {
-      users {
-        name
-        username
-      }
-    }
-  `);
-  return { props: { users } };
 }
