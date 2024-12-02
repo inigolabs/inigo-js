@@ -9,6 +9,7 @@ This document outlines the changes made to the default boilerplate to address de
 ### **#1 Vercel Route - Deploy Issue**
 
 #### **Root Cause**
+
 The issue arose from a compatibility mismatch when the pre-build process was performed on macOS (Darwin) but executed in a Linux environment on Vercel. Specifically, the Foreign Function Interface (FFI) library encountered issues due to platform differences.
 
 #### **Workaround**
@@ -17,12 +18,14 @@ To resolve this, the following steps were implemented:
 
 1. **Update `.npmrc`**
    Add the following line to your `.npmrc` file:
+
    ```
    force=true
    ```
 
 2. **Install Platform-Compatible FFI Library**
    Run the following command to install the Linux-compatible version of the FFI library:
+
    ```bash
    npm i --save @yuuang/ffi-rs-linux-x64-gnu@1.0.76
    ```
@@ -38,6 +41,7 @@ To resolve this, the following steps were implemented:
 ### **#2 Vercel Route - Show Data Issue**
 
 #### **Root Cause**
+
 The issue was related to the data flushing function, which was not being triggered upon termination due to missing functionality in the existing package version.
 
 #### **Resolution**
@@ -55,7 +59,9 @@ The issue was related to the data flushing function, which was not being trigger
      plugins: [new InigoPlugin()],
    });
 
-   export default startServerAndCreateNextHandler(server);
+   const handler = startServerAndCreateNextHandler(server);
+
+   export { handler as GET, handler as POST };
    ```
 
 ---
@@ -70,7 +76,9 @@ The issue was related to the data flushing function, which was not being trigger
 ---
 
 ## **Notes**
+
 Ensure all dependencies are updated before deploying to Vercel to avoid runtime issues:
+
 ```bash
 npm install
 ```
