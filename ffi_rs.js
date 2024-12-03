@@ -1,4 +1,4 @@
-const { DataType, open,  define, createPointer, restorePointer, freePointer } = require('ffi-rs')
+const { DataType, open,  define, createPointer, restorePointer /*, freePointer, PointerType */ } = require('ffi-rs')
 const { resolve } = require("path");
 const fs = require("fs");
 
@@ -193,18 +193,21 @@ function process_service_request_v2(instance, subgraph, query, header) {
   if (external[5] > 0) {
     scalars = new Set(external[4].substring(0, external[5]).split(","));
   }
-  
-  freePointer(externalPtr);
+
+  // freePointer({
+  //   paramsType: retType,
+  //   paramsValue: externalPtr,
+  //   pointerType: PointerType.RsPointer
+  // })
 
   return { handle, scalars, response, request };
 }
 
 function process_response(instance, handle, data) {
-
   const input = Buffer.from(data);
 
   const retType = [DataType.String, DataType.I64];
-  const output_ptr = createPointer({
+  const outputPtr = createPointer({
     paramsType: retType,
     paramsValue: ["", 0]
   })
@@ -214,17 +217,21 @@ function process_response(instance, handle, data) {
     handle,
     input,
     input.length,
-    output_ptr[0],
-    output_ptr[1]
+    outputPtr[0],
+    outputPtr[1]
   ]);
-  
+
   let result;
-  const output = restorePointer({ paramsValue: output_ptr, retType: retType })
+  const output = restorePointer({ paramsValue: outputPtr, retType: retType })
   if (output[1] > 0) {
     result = JSON.parse(output[0].substring(0, output[1]));
   }
 
-  freePointer(output_ptr);
+  // freePointer({
+  //   paramsType: retType,
+  //   paramsValue: outputPtr,
+  //   pointerType: PointerType.RsPointer
+  // })
 
   return result
 }
