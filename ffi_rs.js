@@ -242,6 +242,10 @@ function update_schema(handle, schema) {
   return ffi.update_schema([handle, buf, buf.length]);
 }
 
+function flush(handle) {
+  return ffi.flush([handle]);
+}
+
 function shutdown(handle) {
   return ffi.shutdown([handle]);
 }
@@ -255,5 +259,6 @@ module.exports = {
   get_version,
   disposeHandle,
   update_schema,
-  shutdown
+  shutdown,
+  flush
 };
