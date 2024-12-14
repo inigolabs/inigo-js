@@ -134,3 +134,7 @@ dist
 
 .DS_Store
 
+# ignore test compiled files
+test/go/main.h
+test/go/main.so
+test/*.playground.js

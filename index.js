@@ -4,7 +4,7 @@ const { RemoteGraphQLDataSource } = require("@apollo/gateway");
 const { startServerAndCreateNextHandler } = require("as-integration-next");
 const { v4: uuidv4 } = require("uuid");
 const envelop = require("@envelop/core");
-const ffi = require("./ffi_rs.js");
+const ffi = require("./ffi.js");
 
 class InigoInstance {
   #instance = 0;

@@ -13,3 +13,4 @@ CVS
 npm-debug.log
 .spr.yml
 example/**
+test/**

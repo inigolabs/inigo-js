@@ -16,16 +16,16 @@
     "alerts"
   ],
   "scripts": {
-    "test": "jest --logHeapUsage ./index.test.js"
+    "test": "go build -o test/go/main.so -buildmode=c-shared test/go/main.go && mocha 'test/**/*.test.js'"
   },
   "author": "inigolabs",
   "license": "MIT",
   "dependencies": {
     "@apollo/gateway": "^2.9.1",
     "@envelop/core": "^5.0.2",
-    "ffi-rs": "1.0.76",
     "graphql": "^16.9.0",
     "graphql-request": "^5.2.0",
+    "koffi": "^2.9.2",
     "uuid": "^10.0.0",
     "as-integration-next": "https://github.com/inigolabs/as-integration-next.git"
   },
@@ -38,6 +38,12 @@
     "url": "https://github.com/inigolabs/inigo-js/issues"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "mocha": "^11.0.1",
+    "inigo-darwin-amd64": "latest",
+    "inigo-darwin-arm64": "latest",
+    "inigo-linux-amd64": "latest",
+    "inigo-linux-arm64": "latest",
+    "inigo-windows-amd64": "latest",
+    "inigo-windows-arm64": "latest"
   }
 }
