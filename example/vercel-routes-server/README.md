@@ -1,56 +1,29 @@
 # Updates to the Default Boilerplate for Next.js + Vercel + GraphQL Apollo Server Setup
 
-This document outlines the changes made to the default boilerplate to address deployment and data handling issues when integrating Next.js, Vercel routes, and a GraphQL Apollo Server.
+This document serves as both a guide to integrating Next.js, Vercel routes, and a GraphQL Apollo Server into your project, and a working example to reference.
 
 ---
 
-## **Changes Overview**
+## How to Use
 
-### **#1 Vercel Route - Deploy Issue**
+Running the following commands will install the necessary dependencies, build the project, and start the server:
 
-#### **Root Cause**
+```bash
+npm install && npm run build && npm start
+```
 
-The issue arose from a compatibility mismatch when the pre-build process was performed on macOS (Darwin) but executed in a Linux environment on Vercel. Specifically, the Foreign Function Interface (FFI) library encountered issues due to platform differences.
+### How to implement in own project
 
-#### **Workaround**
-
-To resolve this, the following steps were implemented:
-
-1. **Update `.npmrc`**
-   Add the following line to your `.npmrc` file:
-
-   ```
-   force=true
-   ```
-
-2. **Install Platform-Compatible FFI Library**
-   Run the following command to install the Linux-compatible version of the FFI library:
-
+   Make sure to include both inigo.js and as-integration-next packages in your project.
+   
    ```bash
-   npm i --save @yuuang/ffi-rs-linux-x64-gnu@1.0.76
+   npm install github:inigolabs/inigo-js
+   npm install github:inigolabs/as-integration-next
    ```
-
-3. **Update the Inigo JS Package**
-   Use the updated Inigo JS package to resolve dependencies and compatibility:
-   ```bash
-   npm i --save github:inigolabs/inigo-js#3413c65
-   ```
-
----
-
-### **#2 Vercel Route - Show Data Issue**
-
-#### **Root Cause**
-
-The issue was related to the data flushing function, which was not being triggered upon termination due to missing functionality in the existing package version.
-
-#### **Resolution**
-
-1. **Update Your Code**
-   The updated version of the Inigo JS package exposes the required function to flush data properly. Update your handler as follows:
 
    ```javascript
-   import { InigoPlugin, startServerAndCreateNextHandler } from "inigo.js";
+   import { InigoPlugin } from "inigo.js";
+   import { startServerAndCreateNextHandler } from "as-integration-next";
 
    // Example server initialization
    const server = new ApolloServer({
@@ -64,23 +37,11 @@ The issue was related to the data flushing function, which was not being trigger
    export { handler as GET, handler as POST };
    ```
 
----
 
-## **Summary of Changes**
+### Bundlers
 
-- Added platform compatibility settings in `.npmrc` (`force=true`).
-- Installed platform-specific FFI library to address deployment issues on Linux environments.
-- Updated Inigo JS package to include the data flushing function.
-- Modified server initialization code to utilize the new Inigo handler.
+This project depends on koffi.dev ffi library. If you are having deployment issues, i.e, missing libraries related to koffi, Make sure to include `node_modules/koffi` to your bundle. This will add all the necessary libraries for ffi to work properly, regardless of the platform.
 
----
+You can take a look at the example of bundling in `next.config.js` file.
 
-## **Notes**
-
-Ensure all dependencies are updated before deploying to Vercel to avoid runtime issues:
-
-```bash
-npm install
-```
-
-These changes will ensure seamless deployment and functionality for your customers.
+More info on https://koffi.dev/packaging
