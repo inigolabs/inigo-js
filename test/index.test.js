@@ -1,4 +1,5 @@
-const inigo = require("./index");
+const inigo = require("../index");
+const assert = require('assert');
 
 describe("CountResponseFields", () => {
   let tests = [
@@ -173,11 +174,11 @@ describe("CountResponseFields", () => {
   ];
 
   for (const t of tests) {
-    test(
+    it(
       t.name,
       () => {
-        expect(inigo.countResponseFields(JSON.parse(t.payload))).toEqual(t.expected)
-        expect(inigo.responseCounts(JSON.parse(t.payload))).toEqual(t.expected_total_counts)
+        assert.deepStrictEqual(inigo.countResponseFields(JSON.parse(t.payload)), t.expected);
+        assert.deepStrictEqual(inigo.responseCounts(JSON.parse(t.payload)), t.expected_total_counts);
       }
     );
   }
