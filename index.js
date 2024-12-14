@@ -1,7 +1,6 @@
 const { printSchema, parse, getOperationAST } = require("graphql");
 const { GraphQLClient, gql } = require("graphql-request");
 const { RemoteGraphQLDataSource } = require("@apollo/gateway");
-const { startServerAndCreateNextHandler } = require("as-integration-next");
 const { v4: uuidv4 } = require("uuid");
 const envelop = require("@envelop/core");
 const ffi = require("./ffi.js");
@@ -1068,4 +1067,3 @@ exports.InigoPlugin = InigoPlugin;
 exports.Inigo = Inigo;
 exports.version = version;
 exports.YogaInigoPlugin = YogaInigoPlugin;
-exports.startServerAndCreateNextHandler = startServerAndCreateNextHandler;
