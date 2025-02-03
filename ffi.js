@@ -102,7 +102,7 @@ function process_service_request_v2(instance, subgraph, query, header) {
     let status_output = Buffer.allocUnsafe(8), status_output_len = [null];
     let analysis = Buffer.allocUnsafe(8), analysis_len = [null];
 
-    const handle = ffi.process_service_request_v2(
+    let handle = ffi.process_service_request_v2(
         instance, 
         subgraphs, 
         subgraphs.length, 
@@ -125,6 +125,12 @@ function process_service_request_v2(instance, subgraph, query, header) {
     // response
     if (output_len[0] > 0) {
         response = JSON.parse(koffi.decode(output, 'char*', output_len));
+        ffi.disposeHandle(handle);
+        output = null;
+        status_output = null;
+        analysis = null;
+        handle = 0;
+        return { handle, scalars, response, request };
     }
 
     // request
