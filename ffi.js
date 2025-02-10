@@ -27,11 +27,7 @@ if (getOS() == "darwin") {
     ext = ".dylib"
 }
 
-let libraryPath = resolve(__dirname, `../${pf}/${pf}${ext}`);
-
-if (!fs.existsSync(libraryPath)) {
-  libraryPath = resolve(process.cwd(), "node_modules", `${pf}/${pf}${ext}`);
-}
+let libraryPath = require.resolve(`${pf}/${pf}${ext}`);
 
 if (fs.existsSync(libinigo+ext)) {
   libraryPath = libinigo+ext

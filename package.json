@@ -1,6 +1,6 @@
 {
   "name": "inigo.js",
-  "version": "0.30.11",
+  "version": "0.30.22",
   "description": "Inigo's middleware integration offers GraphQL Security, Analytics, Rate-limiting, Access Contorl and more.",
   "main": "index.js",
   "keywords": [
@@ -38,11 +38,11 @@
   },
   "devDependencies": {
     "mocha": "^11.0.1",
-    "inigo-darwin-amd64": "latest",
-    "inigo-darwin-arm64": "latest",
-    "inigo-linux-amd64": "latest",
-    "inigo-linux-arm64": "latest",
-    "inigo-windows-amd64": "latest",
-    "inigo-windows-arm64": "latest"
+    "inigo-darwin-amd64": "^0.30.21",
+    "inigo-darwin-arm64": "^0.30.21",
+    "inigo-linux-amd64": "^0.30.21",
+    "inigo-linux-arm64": "^0.30.21",
+    "inigo-windows-amd64": "^0.30.21",
+    "inigo-windows-arm64": "^0.30.21"
   }
 }
