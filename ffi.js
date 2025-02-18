@@ -29,6 +29,11 @@ if (getOS() == "darwin") {
 
 let libraryPath = require.resolve(`${pf}/${pf}${ext}`);
 
+// fallback to previous path resolution if module is not found
+if (!fs.existsSync(libraryPath)) {
+  libraryPath = resolve(__dirname, `../${pf}/${pf}${ext}`);
+}
+
 if (fs.existsSync(libinigo+ext)) {
   libraryPath = libinigo+ext
 }
