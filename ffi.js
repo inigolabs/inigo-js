@@ -44,6 +44,10 @@ if (process.env.DEVFFI) {
   console.log(libraryPath);
 }
 
+if (process.env.INIGO_LIB) {
+  libraryPath = process.env.INIGO_LIB;
+}
+
 koffi.struct('Config', {
     Debug: 'bool',
     Name: 'string',
