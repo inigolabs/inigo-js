@@ -1,6 +1,6 @@
 import { ApolloServer } from "@apollo/server";
 import { InigoPlugin } from "inigo.js";
-import { startServerAndCreateNextHandler } from "as-integration-next";
+import { startServerAndCreateNextHandler } from "@as-integrations/next";
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { schema, typeDefs } from "../../../shared/schema";
 
