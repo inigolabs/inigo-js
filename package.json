@@ -1,6 +1,6 @@
 {
   "name": "inigo.js",
-  "version": "1.0.51",
+  "version": "1.0.52",
   "description": "Inigo's middleware integration offers GraphQL Security, Analytics, Rate-limiting, Access Contorl and more.",
   "main": "index.js",
   "keywords": [
