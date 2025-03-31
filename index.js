@@ -389,6 +389,7 @@ function plugin(inigo, config) {
 
           const processed = query.processResponse(
             JSON.stringify({
+              extensions: resp.extensions,
               errors: resp.errors,
               response_size: 0,
               response_body_counts: responseCounts(resp, query.scalars),
@@ -682,6 +683,7 @@ const InigoDataSourceMixin = (superclass, inigo) =>
       // "http" part is attached by the RemoteGraphQLDataSource, remove before processResponse fn execution
       const inigo_resp = request.inigo.query.processResponse(
         JSON.stringify({
+          extensions: response.extensions,
           errors: response.errors,
           response_size: 0,
           response_body_counts: responseCounts(
@@ -954,6 +956,7 @@ const YogaInigoPlugin = (config) => {
               result,
               query.processResponse(
                 JSON.stringify({
+                  extensions: result.extensions,
                   errors: result.errors,
                   response_size: 0,
                   response_body_counts: responseCounts(result, query.scalars),
@@ -994,6 +997,7 @@ const YogaInigoPlugin = (config) => {
                   result,
                   query.processResponse(
                     JSON.stringify({
+                      extensions: result.extensions,
                       errors: result.errors,
                       response_size: 0,
                       response_body_counts: responseCounts(
