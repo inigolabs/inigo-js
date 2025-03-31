@@ -1,10 +1,12 @@
-import { ApolloServer, gql } from 'apollo-server';
 import { config } from "dotenv";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { parse } from "yaml";
 import { InigoPlugin } from 'inigo.js';
 import * as url from "url";
+import { ApolloServer } from '@apollo/server';
+import { startStandaloneServer } from '@apollo/server/standalone';
+import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
 import resolvers from "./resolvers.js"
 
 config();
@@ -22,14 +24,14 @@ const inigoCfg = {
 };
 
 const server = new ApolloServer({
-  debug: false,
   typeDefs,
   resolvers: resolvers(data),
   plugins: [
+    ApolloServerPluginInlineTrace(),
     InigoPlugin(inigoCfg),
   ]
 });
 
-server.listen().then(({ url }) => {
+startStandaloneServer(server, { listen: { port: 4000 }}).then(({ url }) => {
   console.log(`🚀 Server ready at ${url}`);
 });

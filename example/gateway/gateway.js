@@ -22,9 +22,9 @@ class CustomRemoteDataSource extends InigoRemoteDataSource {
   async onBeforeSendRequest({ request, context }) {
     if (context && context.req && context.req.headers) {
       // pass all headers to subgraph
-      Object.keys(context.headers || []).forEach(key => {
-        if (context.headers[key]) {
-          request.http.headers.set(key, context.headers[key]);
+      Object.keys(context.req.headers || []).forEach(key => {
+        if (context.req.headers[key]) {
+          request.http.headers.set(key, context.req.headers[key]);
         }
       });
     }

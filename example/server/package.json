@@ -5,8 +5,7 @@
   "type": "module",
   "license": "MIT",
   "dependencies": {
-    "apollo-server": "^3.13.0",
-    "apollo-server-core": "^3.13.0",
+    "@apollo/server": "^4.11.3",
     "dotenv": "^16.4.5",
     "graphql": "^16.9.0",
     "inigo-darwin-amd64": "^1.0.50",
