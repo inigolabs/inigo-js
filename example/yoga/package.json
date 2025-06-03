@@ -25,12 +25,12 @@
     "@graphql-tools/schema": "^10.0.2",
     "graphql": "^16.8.1",
     "graphql-yoga": "5.1.0",
-    "inigo-darwin-amd64": "^1.0.50",
-    "inigo-darwin-arm64": "^1.0.50",
-    "inigo-linux-amd64": "^1.0.50",
-    "inigo-linux-arm64": "^1.0.50",
-    "inigo-windows-amd64": "^1.0.50",
-    "inigo-windows-arm64": "^1.0.50",
+    "inigo-darwin-amd64": "^1.3.1",
+    "inigo-darwin-arm64": "^1.3.1",
+    "inigo-linux-amd64": "^1.3.1",
+    "inigo-linux-arm64": "^1.3.1",
+    "inigo-windows-amd64": "^1.3.1",
+    "inigo-windows-arm64": "^1.3.1",
     "inigo.js": "file:../.."
   }
 }

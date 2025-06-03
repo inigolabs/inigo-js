@@ -56,6 +56,7 @@ class Query {
   #handle = 0;
   #query = {};
   #subgraph = "";
+  #requestStartTime = 0;
 
   scalars = {};
 
@@ -66,6 +67,10 @@ class Query {
 
   setSubgraphName(name) {
     this.#subgraph = name;
+  }
+
+  setRequestStartTime(start) {
+    this.#requestStartTime = start;
   }
 
   handle() {
@@ -83,6 +88,10 @@ class Query {
 
   processRequest(headers) {
     const newHeaders = {};
+
+    if (this.#requestStartTime > 0) {
+      newHeaders["X-Inigo-Request-Start-Time"] = this.#requestStartTime.toString();
+    }
 
     if (headers !== undefined) {
       for (const [key, value] of headers.entries()) {
@@ -259,6 +268,8 @@ function plugin(inigo, config) {
     // 'requestDidStart' callback is triggered when apollo receives request.
     // It returns handlers for query lifecycle events.
     async requestDidStart(requestContext) {
+      const requestStartTime = Date.now();
+
       // if (requestContext.request.operationName == "IntrospectionQuery") return null; // debug purposes
 
       if (inigo.instance() === 0) {
@@ -295,6 +306,7 @@ function plugin(inigo, config) {
             variables: ctx.request.variables,
             extensions: ctx.request.extensions || {},
           });
+          query.setRequestStartTime(requestStartTime);
 
           // Create request context, for storing blocked status
           if (ctx[ctxKey].inigo === undefined) {
